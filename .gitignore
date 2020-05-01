@@ -2,3 +2,4 @@ venv
 .vscode
 authorization.db
 settings.py
+__pycache__

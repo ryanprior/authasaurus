@@ -39,14 +39,14 @@ def create_user(username:str, login:bool, retry = 100):
 def get_user_id(api_key:str):
     with connection:
         cursor = connection.cursor()
-        results = curser.execute("SELECT UserId FROM USER WHERE ApiKey = ? ", (api_key,))
+        cursor.execute("SELECT UserId FROM USER WHERE ApiKey = ? ", (api_key,))
         user_id = cursor.fetchone()
         return user_id
 
 
 def make_db():
     with connection:
-        connection.execute('''            
+        connection.execute('''
             CREATE TABLE IF NOT EXISTS USER (
                 Id INT NOT NULL PRIMARY KEY, 
                 Username TEXT, 
