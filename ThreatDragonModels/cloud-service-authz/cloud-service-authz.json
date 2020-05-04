@@ -14,7 +14,610 @@
       {
         "title": "Threats",
         "thumbnail": "./public/content/images/thumbnail.jpg",
-        "id": 0
+        "id": 0,
+        "diagramJson": {
+          "cells": [
+            {
+              "type": "tm.Process",
+              "size": {
+                "width": 100,
+                "height": 100
+              },
+              "position": {
+                "x": 329,
+                "y": 184
+              },
+              "angle": 0,
+              "id": "be38205c-1e85-4c9d-9c96-c01fe8a52735",
+              "z": 1,
+              "hasOpenThreats": true,
+              "outOfScope": false,
+              "threats": [
+                {
+                  "ruleId": "4adaa48a-0345-4533-a189-64c98c4420dd",
+                  "title": "Hostile network",
+                  "type": "Tampering",
+                  "status": "Open",
+                  "severity": "Low",
+                  "description": "A network actor could steal credentials or tamper with the authn data, causing the user to fail to transmit their authorization.",
+                  "mitigation": "Ensuring TLS usage should mitigate many hostile network attacks."
+                },
+                {
+                  "ruleId": "87bc37e2-798e-4d68-bb96-feb1da26da48",
+                  "title": "Credential disclosure",
+                  "type": "Repudiation",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "description": "If a credential is disclosed because of a breach, re-use, or spyware, the attacker could abuse other users' identities.",
+                  "mitigation": "Regular rotation of API keys, and checking known breaches for compromised password hashes would help."
+                },
+                {
+                  "ruleId": "13000296-b17d-4b72-9cc4-f5cc33f80e4c",
+                  "title": "Misconfigured API endpoint",
+                  "type": "Information disclosure",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "description": "An endpoint that should be protected from unauthorized users is left unprotected because of a misconfiguration.",
+                  "mitigation": "A tool to scan and report on endpoint configurations, and an enforced (how?) clearlist of routes exposed to unauthorized users, would help mitigate."
+                },
+                {
+                  "ruleId": "edb05d76-a695-455f-947b-7d67b78bc31d",
+                  "title": "DoS threat",
+                  "type": "Denial of service",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "description": "However much work the authz process takes to reject an unauthorized user, any DoS agent can force repeatedly.",
+                  "mitigation": "Rate limiting and pre-rejection based on IP ranges, traffic patterns, headers, etc could help limit risk of DoS."
+                },
+                {
+                  "ruleId": "c1377855-ea20-4c97-8861-f95c364fb8d2",
+                  "title": "XSS",
+                  "type": "Elevation of privilege",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "description": "An XSS attack could leverage a user's cookies or other info stored in their client.",
+                  "mitigation": "Flask & other frameworks often provide XSS protection. Can we help enforce this? (A scanning / static analysis tool could be a first step?)"
+                }
+              ],
+              "attrs": {
+                ".element-shape": {
+                  "class": "element-shape hasOpenThreats isInScope"
+                },
+                "text": {
+                  "text": "⚙️ web service"
+                },
+                ".element-text": {
+                  "class": "element-text hasOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Store",
+              "size": {
+                "width": 160,
+                "height": 80
+              },
+              "position": {
+                "x": 476,
+                "y": 195
+              },
+              "angle": 0,
+              "id": "37b1830b-b996-4839-9a08-3c2777f3e1cd",
+              "z": 3,
+              "hasOpenThreats": true,
+              "storesCredentials": true,
+              "threats": [
+                {
+                  "status": "Open",
+                  "severity": "Low",
+                  "type": "Tampering",
+                  "title": "Unauthorized writes",
+                  "description": "Other processes or users on the application machine could alter privileges by directly accessing the sqlite database."
+                },
+                {
+                  "status": "Open",
+                  "severity": "High",
+                  "title": "Stolen secrets",
+                  "type": "Information disclosure",
+                  "description": "Other processes could read and exfiltrate authz secrets from the database."
+                },
+                {
+                  "status": "Open",
+                  "severity": "Medium",
+                  "type": "Repudiation",
+                  "title": "Identity abuse",
+                  "description": "A local actor that gains access to secrets from the database could appear as another identity in logs and API actions, which the real owner of that identity could not repudiate."
+                },
+                {
+                  "status": "Open",
+                  "severity": "Medium",
+                  "type": "Elevation of privilege",
+                  "title": "Account takeover",
+                  "description": "A local actor uses access to the database to access an account with greater privileges than their own."
+                },
+                {
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Denial of service",
+                  "title": "Ransomware",
+                  "description": "A local actor deletes or encrypts the database, making a demand for its return."
+                }
+              ],
+              "attrs": {
+                ".element-shape": {
+                  "class": "element-shape hasOpenThreats isInScope"
+                },
+                "text": {
+                  "text": "🗃️ sqlite"
+                },
+                ".element-text": {
+                  "class": "element-text hasOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Flow",
+              "smooth": true,
+              "source": {
+                "id": "37b1830b-b996-4839-9a08-3c2777f3e1cd"
+              },
+              "target": {
+                "id": "be38205c-1e85-4c9d-9c96-c01fe8a52735"
+              },
+              "vertices": [],
+              "id": "28c5cba8-5e67-43e9-aac1-4917114fc295",
+              "labels": [
+                {
+                  "position": {
+                    "distance": 0.452880859375,
+                    "offset": -17
+                  },
+                  "attrs": {
+                    "text": {
+                      "text": "🗝️ authz",
+                      "font-weight": "400",
+                      "font-size": "small"
+                    }
+                  }
+                }
+              ],
+              "z": 4,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".marker-target": {
+                  "class": "marker-target hasNoOpenThreats isInScope"
+                },
+                ".connection": {
+                  "class": "connection hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Process",
+              "size": {
+                "width": 100,
+                "height": 100
+              },
+              "position": {
+                "x": 688,
+                "y": 186
+              },
+              "angle": 0,
+              "id": "bf67d55d-4dc2-4a1b-ae25-f7def1d0e70e",
+              "z": 5,
+              "hasOpenThreats": true,
+              "threats": [
+                {
+                  "status": "Open",
+                  "severity": "Medium",
+                  "title": "Other applications",
+                  "description": "If the server runs other applications, they could tamper with the database or application code.",
+                  "type": "Tampering"
+                }
+              ],
+              "attrs": {
+                ".element-shape": {
+                  "class": "element-shape hasOpenThreats isInScope"
+                },
+                "text": {
+                  "text": "⚒️ rest of\nserver"
+                },
+                ".element-text": {
+                  "class": "element-text hasOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Flow",
+              "smooth": true,
+              "source": {
+                "id": "37b1830b-b996-4839-9a08-3c2777f3e1cd"
+              },
+              "target": {
+                "id": "bf67d55d-4dc2-4a1b-ae25-f7def1d0e70e"
+              },
+              "vertices": [],
+              "id": "0e4ce474-48a5-47c5-bbad-c3f5c926f8e7",
+              "labels": [
+                {
+                  "position": {
+                    "distance": 0.6210413513027663,
+                    "offset": 21.722060719858497
+                  },
+                  "attrs": {
+                    "text": {
+                      "text": "sneaky reads 👿️",
+                      "font-weight": "400",
+                      "font-size": "small"
+                    }
+                  }
+                }
+              ],
+              "z": 6,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".marker-target": {
+                  "class": "marker-target hasNoOpenThreats isInScope"
+                },
+                ".connection": {
+                  "class": "connection hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Actor",
+              "size": {
+                "width": 160,
+                "height": 80
+              },
+              "position": {
+                "x": 475,
+                "y": 400
+              },
+              "angle": 0,
+              "id": "8a2c22a8-c14b-4976-8bb8-0fa2cdc0ec3d",
+              "z": 7,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".element-shape": {
+                  "class": "element-shape hasNoOpenThreats isInScope"
+                },
+                "text": {
+                  "text": "👮‍♂️️ malicious user"
+                },
+                ".element-text": {
+                  "class": "element-text hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Flow",
+              "smooth": true,
+              "source": {
+                "id": "bf67d55d-4dc2-4a1b-ae25-f7def1d0e70e"
+              },
+              "target": {
+                "id": "8a2c22a8-c14b-4976-8bb8-0fa2cdc0ec3d"
+              },
+              "vertices": [],
+              "id": "47032a3c-8855-4f9f-bd44-4b4e51b141a0",
+              "labels": [
+                {
+                  "position": 0.5,
+                  "attrs": {
+                    "text": {
+                      "text": "unauthorized access",
+                      "font-weight": "400",
+                      "font-size": "small"
+                    }
+                  }
+                }
+              ],
+              "z": 8,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".marker-target": {
+                  "class": "marker-target hasNoOpenThreats isInScope"
+                },
+                ".connection": {
+                  "class": "connection hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Flow",
+              "smooth": true,
+              "source": {
+                "id": "be38205c-1e85-4c9d-9c96-c01fe8a52735"
+              },
+              "target": {
+                "id": "8a2c22a8-c14b-4976-8bb8-0fa2cdc0ec3d"
+              },
+              "vertices": [],
+              "id": "18943600-e595-4d76-8228-e154abbd2bcc",
+              "labels": [
+                {
+                  "position": 0.5,
+                  "attrs": {
+                    "text": {
+                      "text": "abuse of API",
+                      "font-weight": "400",
+                      "font-size": "small"
+                    }
+                  }
+                }
+              ],
+              "z": 9,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".marker-target": {
+                  "class": "marker-target hasNoOpenThreats isInScope"
+                },
+                ".connection": {
+                  "class": "connection hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Boundary",
+              "smooth": true,
+              "source": {
+                "x": 223,
+                "y": 329
+              },
+              "target": {
+                "x": 530,
+                "y": 325
+              },
+              "vertices": [
+                {
+                  "x": 380,
+                  "y": 303
+                }
+              ],
+              "id": "833e9c29-0292-48c4-a67e-b96e251be724",
+              "z": 10,
+              "attrs": {}
+            },
+            {
+              "type": "tm.Boundary",
+              "smooth": true,
+              "source": {
+                "x": 570,
+                "y": 317
+              },
+              "target": {
+                "x": 769,
+                "y": 337
+              },
+              "vertices": [
+                {
+                  "x": 673,
+                  "y": 308
+                }
+              ],
+              "id": "a58d82df-36cc-456f-a202-ec4a74fb7046",
+              "z": 11,
+              "attrs": {}
+            },
+            {
+              "type": "tm.Actor",
+              "size": {
+                "width": 160,
+                "height": 80
+              },
+              "position": {
+                "x": 151,
+                "y": 400
+              },
+              "angle": 0,
+              "id": "d147993d-9172-43f8-8109-c64007b6a424",
+              "z": 12,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".element-shape": {
+                  "class": "element-shape hasNoOpenThreats isInScope"
+                },
+                "text": {
+                  "text": "🤖️ out-of-control\nauthorized bot"
+                },
+                ".element-text": {
+                  "class": "element-text hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Actor",
+              "size": {
+                "width": 160,
+                "height": 80
+              },
+              "position": {
+                "x": 292,
+                "y": 18
+              },
+              "angle": 0,
+              "id": "f10c556f-1234-451a-962d-d3d2657eae84",
+              "z": 13,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".element-shape": {
+                  "class": "element-shape hasNoOpenThreats isInScope"
+                },
+                "text": {
+                  "text": "👼️ innocent user"
+                },
+                ".element-text": {
+                  "class": "element-text hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Flow",
+              "smooth": true,
+              "source": {
+                "id": "be38205c-1e85-4c9d-9c96-c01fe8a52735"
+              },
+              "target": {
+                "id": "f10c556f-1234-451a-962d-d3d2657eae84"
+              },
+              "vertices": [],
+              "id": "a83525b0-93b9-46a4-a0cc-67655bd91197",
+              "labels": [
+                {
+                  "position": 0.5,
+                  "attrs": {
+                    "text": {
+                      "text": "intended use of web\nservice",
+                      "font-weight": "400",
+                      "font-size": "small"
+                    }
+                  }
+                }
+              ],
+              "z": 14,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".marker-target": {
+                  "class": "marker-target hasNoOpenThreats isInScope"
+                },
+                ".connection": {
+                  "class": "connection hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Flow",
+              "smooth": true,
+              "source": {
+                "id": "be38205c-1e85-4c9d-9c96-c01fe8a52735"
+              },
+              "target": {
+                "id": "d147993d-9172-43f8-8109-c64007b6a424"
+              },
+              "vertices": [],
+              "id": "4d8a6223-3c0a-4e58-80a3-f8da13ad4a7d",
+              "labels": [
+                {
+                  "position": 0.5,
+                  "attrs": {
+                    "text": {
+                      "text": "abuse of API",
+                      "font-weight": "400",
+                      "font-size": "small"
+                    }
+                  }
+                }
+              ],
+              "z": 15,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".marker-target": {
+                  "class": "marker-target hasNoOpenThreats isInScope"
+                },
+                ".connection": {
+                  "class": "connection hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Actor",
+              "size": {
+                "width": 160,
+                "height": 80
+              },
+              "position": {
+                "x": 35,
+                "y": 194
+              },
+              "angle": 0,
+              "id": "cc8b5396-b158-46f9-abae-e8e10ab30829",
+              "z": 16,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".element-shape": {
+                  "class": "element-shape hasNoOpenThreats isInScope"
+                },
+                "text": {
+                  "text": "👼️ well behaved\nauthorized bot"
+                },
+                ".element-text": {
+                  "class": "element-text hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Flow",
+              "smooth": true,
+              "source": {
+                "id": "be38205c-1e85-4c9d-9c96-c01fe8a52735"
+              },
+              "target": {
+                "id": "cc8b5396-b158-46f9-abae-e8e10ab30829"
+              },
+              "vertices": [],
+              "id": "c000d990-fbbc-433b-abbc-238b0e23b15c",
+              "labels": [
+                {
+                  "position": {
+                    "distance": 0.44077294899912833,
+                    "offset": -14.498983185288292
+                  },
+                  "attrs": {
+                    "text": {
+                      "text": "intended use of API",
+                      "font-weight": "400",
+                      "font-size": "small"
+                    }
+                  }
+                }
+              ],
+              "z": 17,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".marker-target": {
+                  "class": "marker-target hasNoOpenThreats isInScope"
+                },
+                ".connection": {
+                  "class": "connection hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Boundary",
+              "smooth": true,
+              "source": {
+                "x": 453,
+                "y": 163
+              },
+              "target": {
+                "x": 282,
+                "y": 289
+              },
+              "vertices": [
+                {
+                  "x": 369,
+                  "y": 157
+                },
+                {
+                  "x": 311,
+                  "y": 175
+                },
+                {
+                  "x": 287,
+                  "y": 227
+                }
+              ],
+              "id": "d34e34be-3cea-4e06-853b-70d46509ed69",
+              "z": 18,
+              "attrs": {}
+            }
+          ]
+        },
+        "size": {
+          "height": 590,
+          "width": 2414.004150390625
+        }
       }
     ]
   }
