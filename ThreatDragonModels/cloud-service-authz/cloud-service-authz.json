@@ -1,0 +1,21 @@
+{
+  "summary": {
+    "title": "cloud-service-authz",
+    "owner": "ryanprior",
+    "description": "An application owner uses sqlite-flask-authn to control access to a small-to-medium size web service either directly exposed to the internet or sitting behind a TLS terminating reverse-proxy."
+  },
+  "detail": {
+    "contributors": [
+      {
+        "name": "DaWei8823"
+      }
+    ],
+    "diagrams": [
+      {
+        "title": "Threats",
+        "thumbnail": "./public/content/images/thumbnail.jpg",
+        "id": 0
+      }
+    ]
+  }
+}
