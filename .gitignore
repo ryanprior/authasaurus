@@ -3,3 +3,4 @@ venv
 authorization.db
 settings.py
 __pycache__
+/salt-value

@@ -1,6 +1,7 @@
 import requests
 import settings
 import http
+import db
 
 def call_no_header():
     resp = requests.get(settings.endpoint)
@@ -11,8 +12,10 @@ def call_incorrect_authentication():
     resp = requests.get(settings.endpoint, headers = headers)
     assert(resp.status_code == http.client.UNAUTHORIZED)
 
+user, _ = db.create_user("tester", False)
+
 def call_correct_authentication():
-    headers = {'Authorization': f'token: {settings.test_api_key}'}
+    headers = {'Authorization': f'Token {user.api_key}'}
     resp = requests.get(settings.endpoint, headers = headers)
     assert(resp.status_code == http.client.OK)
 
@@ -20,5 +23,3 @@ def call_correct_authentication():
 call_no_header()
 call_incorrect_authentication()
 call_correct_authentication()
-
-
