@@ -48,13 +48,14 @@ def create_user(username:str, login:bool, retry = 100):
                 raise
 
 
-def get_user_id(api_key:str):
+def get_user(api_key:str):
     connection = sqlite3.connect('authorization.db')
     with connection:
         cursor = connection.cursor()
-        cursor.execute("SELECT Id FROM USER WHERE ApiKey = ? ", (api_key,))
-        user_id = cursor.fetchone()
-        return user_id or None
+        cursor.execute("SELECT * FROM USER WHERE ApiKey = ? ", (api_key,))
+        user = cursor.fetchone()
+
+        return User(user[0], user[1], user[2], user[3])
 
 
 def make_db():

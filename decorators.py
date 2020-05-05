@@ -1,6 +1,6 @@
 from functools import wraps
 from flask import request, Response
-from db import get_user_id
+from db import get_user
 from settings import max_api_key_length
 import re
 from http.client import UNAUTHORIZED
