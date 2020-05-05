@@ -33,7 +33,23 @@ def call_with_authorized_user():
     resp = requests.get(settings.endpoint+"/protected", headers = headers)
     assert(resp.status_code == http.client.OK)
 
+def call_with_invalid_username_in_path():
+    headers = {'Authorization': f'Token {unauthorized_user.api_key}'}
+    resp = requests.get(settings.endpoint+"/admin/account", headers = headers)
+    assert(resp.status_code == http.client.UNAUTHORIZED)
 
+    headers = {'Authorization': f'Token {unauthorized_user.api_key}'}
+    resp = requests.get(settings.endpoint+"/admin/history", headers = headers)
+    assert(resp.status_code == http.client.UNAUTHORIZED)
+
+def call_with_valid_username_in_path():
+    headers = {'Authorization': f'Token {admin.api_key}'}
+    resp = requests.get(settings.endpoint+"/admin/account", headers = headers)
+    assert(resp.status_code == http.client.OK)
+
+    headers = {'Authorization': f'Token {admin.api_key}'}
+    resp = requests.get(settings.endpoint+"/admin/history", headers = headers)
+    assert(resp.status_code == http.client.OK)
 
 
 
@@ -42,3 +58,5 @@ call_incorrect_authentication()
 call_correct_authentication()
 call_with_unauthorized_user()
 call_with_authorized_user()
+call_with_invalid_username_in_path()
+call_with_valid_username_in_path()
