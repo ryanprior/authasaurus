@@ -1,2 +1,2 @@
 endpoint = None
-test_api_key = None
+max_api_key_length = 128

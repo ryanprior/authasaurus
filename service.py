@@ -10,6 +10,11 @@ app = Flask(__name__)
 def index():
     return "ok\n", 200
 
+@app.route('/protected')
+@auth_required(users = ['admin'])
+def protected():
+    return "hello admin\n", 200
+
 db.make_db()
 db.load_salt()
 debug = environ.get("AUTHZ_DEBUG", False)

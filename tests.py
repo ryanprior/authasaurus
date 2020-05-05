@@ -19,7 +19,26 @@ def call_correct_authentication():
     resp = requests.get(settings.endpoint, headers = headers)
     assert(resp.status_code == http.client.OK)
 
+unauthorized_user, _ = db.create_user("unauthorized", False)
+
+def call_with_unauthorized_user():
+    headers = {'Authorization': f'Token {unauthorized_user.api_key}'}
+    resp = requests.get(settings.endpoint +"/protected", headers = headers)
+    assert(resp.status_code == http.client.UNAUTHORIZED)
+
+admin, _ = db.create_user("admin", False)
+
+def call_with_authorized_user():
+    headers = {'Authorization': f'Token {admin.api_key}'}
+    resp = requests.get(settings.endpoint+"/protected", headers = headers)
+    assert(resp.status_code == http.client.OK)
+
+
+
+
 
 call_no_header()
 call_incorrect_authentication()
 call_correct_authentication()
+call_with_unauthorized_user()
+call_with_authorized_user()
