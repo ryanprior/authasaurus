@@ -23,14 +23,24 @@ unauthorized_user, _ = db.create_user("unauthorized", False)
 
 def call_with_unauthorized_user():
     headers = {'Authorization': f'Token {unauthorized_user.api_key}'}
-    resp = requests.get(settings.endpoint +"/protected", headers = headers)
+    url = settings.endpoint +"/protected"
+    resp = requests.get(url, headers = headers)
+    assert(resp.status_code == http.client.UNAUTHORIZED)
+
+    cookies = {'api-key': unauthorized_user.api_key}
+    resp = requests.get(url, cookies=cookies)
     assert(resp.status_code == http.client.UNAUTHORIZED)
 
 admin, _ = db.create_user("admin", False)
 
 def call_with_authorized_user():
     headers = {'Authorization': f'Token {admin.api_key}'}
-    resp = requests.get(settings.endpoint+"/protected", headers = headers)
+    url = settings.endpoint+"/protected"
+    resp = requests.get(url, headers = headers)
+    assert(resp.status_code == http.client.OK)
+
+    cookies = {'api-key': admin.api_key}
+    resp = requests.get(url, cookies=cookies)
     assert(resp.status_code == http.client.OK)
 
 def call_with_invalid_username_in_path():
