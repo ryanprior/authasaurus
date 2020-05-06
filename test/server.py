@@ -1,7 +1,6 @@
 from flask import Flask
-from decorators import auth_required, auth_user
-from os import environ
-import db
+from authz.decorators import auth_required, auth_user
+from authz import service
 
 app = Flask(__name__)
 
@@ -25,8 +24,6 @@ def account_settings(username):
 def user_history(user):
     return "set your password", 200
 
+login = app.route('/login', methods = ['POST'])(service.login)
 
-db.make_db()
-db.load_salt()
-debug = environ.get("AUTHZ_DEBUG", False)
-app.run(debug=debug)
+app.run(debug=True)

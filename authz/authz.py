@@ -1,8 +1,8 @@
-from flask import request, Response
-import re
-from settings import max_api_key_length
+from authz.db import get_user, api_key_from_login
+from authz.settings import max_api_key_length
+from flask import Response
 from http.client import UNAUTHORIZED
-from db import get_user
+import re
 
 API_KEY="api key"
 COOKIE="cookie"
@@ -11,7 +11,6 @@ token_pattern = r'^Token\s+(.+)$'
 
 # TODO investigate more authz methods:
 # - API key in URL
-# - HTTP basic auth
 
 def authenticated_user(request):
     api_key = api_key_from_header(request)
@@ -34,6 +33,14 @@ def api_key_from_header(request):
 
 def api_key_from_cookie(request):
     return request.cookies.get('api-key', None)
+
+def api_key_from_basic_auth(request):
+    authz = request.authorization
+    if authz and authz.type == 'basic':
+        username, password = authz.username, authz.password
+        return api_key_from_login(username, password)
+    else:
+        return None
 
 
 def not_authorized():

@@ -1,6 +1,7 @@
+from authz.authz import authenticated_user, not_authorized, api_key_from_basic_auth
+from authz import settings
+from flask import request, Response, redirect
 from functools import wraps, partial
-from flask import request, Response
-from authz import authenticated_user, not_authorized
 from http.client import INTERNAL_SERVER_ERROR
 
 def auth_required(func = None, users = None):
@@ -41,3 +42,19 @@ def auth_user(func = None, arg = "username"):
         return not_authorized()
 
     return check_user
+
+def auth_login(func):
+
+    @wraps(func)
+    def check_login(*args, **kwargs):
+        api_key = api_key_from_basic_auth(request)
+        if api_key is not None:
+            return func(*args, api_key=api_key, **kwargs)
+        else:
+            referrer = request.args.get('referrer') or request.form.get('referrer')
+            if referrer is None:
+                return not_authorized()
+            else:
+                return redirect(referrer)
+
+    return check_login
