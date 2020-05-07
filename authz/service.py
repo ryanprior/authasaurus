@@ -1,6 +1,6 @@
 from flask import request, redirect
-from authz.decorators import auth_login
-from authz import settings
+from .decorators import auth_login
+from . import settings
 
 @auth_login
 def login(api_key):

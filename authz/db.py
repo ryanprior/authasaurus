@@ -1,4 +1,4 @@
-from authz import settings
+from . import settings
 from dataclasses import dataclass
 from os import environ
 from os.path import isfile

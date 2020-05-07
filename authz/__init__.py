@@ -1,4 +1,4 @@
-from authz import db
+from . import db
 
 db.make_db()
 db.load_salt()

@@ -1,5 +1,5 @@
-from authz.authz import authenticated_user, not_authorized, api_key_from_basic_auth
-from authz import settings
+from .authz import authenticated_user, not_authorized, api_key_from_basic_auth
+from . import settings
 from flask import request, Response, redirect
 from functools import wraps, partial
 from http.client import INTERNAL_SERVER_ERROR

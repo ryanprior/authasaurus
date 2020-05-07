@@ -1,6 +1,6 @@
 from flask import Flask
-from authz.decorators import auth_required, auth_user
-from authz import service
+from ..decorators import auth_required, auth_user
+from .. import service
 
 app = Flask(__name__)
 

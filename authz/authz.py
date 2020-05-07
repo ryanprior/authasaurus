@@ -1,5 +1,5 @@
-from authz.db import get_user, api_key_from_login
-from authz.settings import max_api_key_length
+from .db import get_user, api_key_from_login
+from .settings import max_api_key_length
 from flask import Response
 from http.client import UNAUTHORIZED
 import re

@@ -2,8 +2,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 import http
 
-import authz
-import authz.db as db
+from .. import db
 import unittest
 
 endpoint = "http://localhost:5000"
