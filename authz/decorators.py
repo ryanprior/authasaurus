@@ -4,10 +4,11 @@ from flask import request, Response, redirect
 from functools import wraps, partial
 from http.client import INTERNAL_SERVER_ERROR
 
-def auth_required(func = None, users = None):
+
+def auth_required(func=None, users=None):
 
     if func is None:
-        return partial(auth_required, users = users)
+        return partial(auth_required, users=users)
 
     @wraps(func)
     def check_auth(*args, **kwargs):
@@ -23,10 +24,10 @@ def auth_required(func = None, users = None):
     return check_auth
 
 
-def auth_user(func = None, arg = "username"):
+def auth_user(func=None, arg="username"):
 
     if func is None:
-        return partial(auth_user, arg = arg)
+        return partial(auth_user, arg=arg)
 
     @wraps(func)
     def check_user(*args, **kwargs):
@@ -43,15 +44,15 @@ def auth_user(func = None, arg = "username"):
 
     return check_user
 
-def auth_login(func):
 
+def auth_login(func):
     @wraps(func)
     def check_login(*args, **kwargs):
         api_key = api_key_from_basic_auth(request)
         if api_key is not None:
             return func(*args, api_key=api_key, **kwargs)
         else:
-            referrer = request.args.get('referrer') or request.form.get('referrer')
+            referrer = request.args.get("referrer") or request.form.get("referrer")
             if referrer is None:
                 return not_authorized()
             else:

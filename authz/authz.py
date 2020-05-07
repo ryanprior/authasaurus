@@ -4,13 +4,14 @@ from flask import Response
 from http.client import UNAUTHORIZED
 import re
 
-API_KEY="api key"
-COOKIE="cookie"
+API_KEY = "api key"
+COOKIE = "cookie"
 
-token_pattern = r'^Token\s+(.+)$'
+token_pattern = r"^Token\s+(.+)$"
 
 # TODO investigate more authz methods:
 # - API key in URL
+
 
 def authenticated_user(request):
     api_key = api_key_from_header(request)
@@ -22,8 +23,9 @@ def authenticated_user(request):
             return get_user(api_key), COOKIE
     return None, None
 
+
 def api_key_from_header(request):
-    auth_header = request.headers.get('Authorization', '')[:max_api_key_length]
+    auth_header = request.headers.get("Authorization", "")[:max_api_key_length]
     match = re.search(token_pattern, auth_header)
     if match is None:
         return None
@@ -31,12 +33,14 @@ def api_key_from_header(request):
         api_key = match.group(1)
         return api_key
 
+
 def api_key_from_cookie(request):
-    return request.cookies.get('api-key', None)
+    return request.cookies.get("api-key", None)
+
 
 def api_key_from_basic_auth(request):
     authz = request.authorization
-    if authz and authz.type == 'basic':
+    if authz and authz.type == "basic":
         username, password = authz.username, authz.password
         return api_key_from_login(username, password)
     else:
@@ -44,4 +48,4 @@ def api_key_from_basic_auth(request):
 
 
 def not_authorized():
-    return Response('not authorized', UNAUTHORIZED)
+    return Response("not authorized", UNAUTHORIZED)
