@@ -2,6 +2,7 @@ from . import settings
 from dataclasses import dataclass
 from os import environ
 from os.path import isfile
+from typings import Union
 import bcrypt
 import random
 import sqlite3
@@ -55,14 +56,18 @@ def create_user(username: str, login: bool, retry=100):
                 raise
 
 
-def get_user(api_key: str):
+def get_user(api_key: str) -> Union[User, None]:
     connection = sqlite3.connect("authorization.db")
     with connection:
         cursor = connection.cursor()
         cursor.execute("SELECT * FROM USER WHERE ApiKey = ? ", (api_key,))
         user = cursor.fetchone()
 
-        return User(user[0], user[1], user[2], user[3])
+        return user and User(user[0], user[1], user[2], user[3])
+
+
+def rotate_api_key(user: User):
+    pass
 
 
 def api_key_from_login(username: str, password: str):

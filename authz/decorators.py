@@ -1,4 +1,4 @@
-from .authz import authenticated_user, not_authorized, api_key_from_basic_auth
+from .authz import authenticated_user, not_authorized, login_user
 from . import settings
 from flask import request, Response, redirect
 from functools import wraps, partial
@@ -12,14 +12,18 @@ def auth_required(func=None, users=None):
 
     @wraps(func)
     def check_auth(*args, **kwargs):
-        user, _ = authenticated_user(request)
+        authz = authenticated_user(request)
+        user, _ = authz
 
         if user is None:
             return not_authorized()
         if users and not user.name in users:
             return not_authorized()
 
-        return func(*args, **kwargs)
+        # could we do something like authz=innocent(authz)
+        # where innocent() removes API keys and pw hashes?
+        # or should we have an authz_info dataclass
+        return func(*args, authz=authz, **kwargs)
 
     return check_auth
 
@@ -35,10 +39,11 @@ def auth_user(func=None, arg="username"):
         if not username:
             return Response("route configuration fault", INTERNAL_SERVER_ERROR)
 
-        user, _ = authenticated_user(request)
+        authz = authenticated_user(request)
+        user, _ = authz
 
         if user and user.name == username:
-            return func(*args, **kwargs)
+            return func(*args, authz=authz, **kwargs)
 
         return not_authorized()
 
@@ -48,9 +53,11 @@ def auth_user(func=None, arg="username"):
 def auth_login(func):
     @wraps(func)
     def check_login(*args, **kwargs):
-        api_key = api_key_from_basic_auth(request)
-        if api_key is not None:
-            return func(*args, api_key=api_key, **kwargs)
+        authz = login_user(request)
+        user, _ = authz
+
+        if user is not None:
+            return func(*args, authz=authz, **kwargs)
         else:
             referrer = request.args.get("referrer") or request.form.get("referrer")
             if referrer is None:

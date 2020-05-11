@@ -6,6 +6,7 @@ import re
 
 API_KEY = "api key"
 COOKIE = "cookie"
+BASIC_AUTH = "basic auth"
 
 token_pattern = r"^Token\s+(.+)$"
 
@@ -23,15 +24,20 @@ def authenticated_user(request):
             return get_user(api_key), COOKIE
     return None, None
 
+def login_user(request):
+    api_key = api_key_from_basic_auth(request)
+    if api_key:
+        return get_user(api_key), BASIC_AUTH
+    return None, None
+
 
 def api_key_from_header(request):
     auth_header = request.headers.get("Authorization", "")[:max_api_key_length]
     match = re.search(token_pattern, auth_header)
-    if match is None:
-        return None
-    else:
+    if match:
         api_key = match.group(1)
         return api_key
+    return None
 
 
 def api_key_from_cookie(request):
@@ -43,8 +49,7 @@ def api_key_from_basic_auth(request):
     if authz and authz.type == "basic":
         username, password = authz.username, authz.password
         return api_key_from_login(username, password)
-    else:
-        return None
+    return None
 
 
 def not_authorized():
