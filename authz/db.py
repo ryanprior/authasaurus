@@ -2,7 +2,7 @@ from . import settings
 from dataclasses import dataclass
 from os import environ
 from os.path import isfile
-from typings import Union
+from typing import Union
 import bcrypt
 import random
 import sqlite3
@@ -66,8 +66,20 @@ def get_user(api_key: str) -> Union[User, None]:
         return user and User(user[0], user[1], user[2], user[3])
 
 
-def rotate_api_key(user: User):
-    pass
+def rotate_api_key(user: User, retry=100) -> str:
+    new_api_key = str(uuid.uuid4())
+    connection = sqlite3.connect("authorization.db")
+    try:
+        with connection:
+            connection.execute(
+                "UPDATE User SET ApiKey = ? WHERE Id = ?", (new_api_key, user.user_id)
+            )
+    except sqlite3.IntegrityError:
+        if retry > 0:
+            return rotate_api_key(user, retry - 1)
+        raise
+
+    return new_api_key
 
 
 def api_key_from_login(username: str, password: str):

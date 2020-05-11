@@ -87,6 +87,14 @@ class AuthzTests(unittest.TestCase):
         self.assertEqual(resp.status_code, http.client.FOUND)
         self.assertEqual(resp.headers.get("Location"), endpoint + redirect)
 
+    def test_rotate_api_key(self):
+        
+        api_key = self.admin.api_key
+        url = endpoint + "/logout"
+        resp = requests.post(url, HTTPBasicAuth(self.admin.name, self.admin_password))
+        
+        self.assertEqual(db.get_user(api_key), None)
+
 
 if __name__ == "__main__":
     unittest.main()

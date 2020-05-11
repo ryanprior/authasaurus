@@ -1,6 +1,7 @@
 from flask import request, redirect
 from .decorators import auth_login, auth_user
 from . import settings
+#from .db import rotate_api_key
 
 @auth_login
 def login(authz):
@@ -22,6 +23,6 @@ def logout(authz):
     url = request.args.get("redirect") or request.form.get("redirect", "/")
     response = redirect(url)
     user, _ = authz
-    # user.rotate_api_key
-    # redirect
-    pass
+    rotate_api_key(user)
+    return response
+
