@@ -4,9 +4,9 @@ from flask import Response
 from http.client import UNAUTHORIZED
 import re
 
-API_KEY = "api key"
-COOKIE = "cookie"
-BASIC_AUTH = "basic auth"
+HEADER = "api key in header"
+COOKIE = "api key in cookie"
+BASIC_AUTH = "http basic auth"
 
 token_pattern = r"^Token\s+(.+)$"
 
@@ -15,14 +15,21 @@ token_pattern = r"^Token\s+(.+)$"
 
 
 def authenticated_user(request):
-    api_key = api_key_from_header(request)
-    if api_key:
-        return get_user(api_key), API_KEY
-    else:
-        api_key = api_key_from_cookie(request)
-        if api_key:
-            return get_user(api_key), COOKIE
+    methods = (
+        (api_key_from_header, HEADER),
+        (api_key_from_cookie, COOKIE),
+        (api_key_from_basic_auth, BASIC_AUTH),
+        (lambda r: True, None),
+    )
+    # try methods until one returns a truthy value
+    api_key, method = next(
+        ((key, method) for func, method in methods if (key := func(request)))
+    )
+
+    if method:
+        return get_user(api_key), method
     return None, None
+
 
 def login_user(request):
     api_key = api_key_from_basic_auth(request)

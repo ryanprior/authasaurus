@@ -1,7 +1,7 @@
 from flask import request, redirect
-from .decorators import auth_login, auth_user
+from .decorators import auth_login, auth_required
 from . import settings
-#from .db import rotate_api_key
+from .db import rotate_api_key
 
 @auth_login
 def login(authz):
