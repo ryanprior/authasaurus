@@ -30,5 +30,6 @@ def user_history(user):
 
 
 login = app.route("/login", methods=["POST"])(service.login)
+logout = app.route("/logout", methods=["POST"])(service.logout)
 
 app.run(debug=True)
