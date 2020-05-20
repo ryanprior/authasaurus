@@ -57,19 +57,18 @@ def create_user(username: str, login: bool, retry=100):
 
     connection = sqlite3.connect("authorization.db")
 
-    with connection:
-        try:
+    try:
+        with connection:
             connection.execute(
                 "INSERT INTO User (Id, Username, PasswordHash) VALUES (?,?,?)",
                 (user_id, username, password_hash),
             )
             return (User(user_id, username, password_hash), password)
-        except sqlite3.IntegrityError:
-            # retry in case violation of unique constraint with user id or api key
-            if retry > 0:
-                return create_user(username, login, retry=retry - 1)
-            else:
-                raise
+    except sqlite3.IntegrityError:
+        # retry in case violation of unique constraint with user id or api key
+        if retry > 0:
+            return create_user(username, login, retry=retry - 1)
+        raise
 
 
 def get_user(api_key: str) -> Union[User, None]:
@@ -144,6 +143,7 @@ def create_api_key(user_id, policy_id=1, policy_data=None):
             (user_id, policy_id, policy_data, key),
         )
 
+    with sqlite3.connect("authorization.db") as conn:
         cursor = conn.cursor()
         cursor.execute(
             """
@@ -170,8 +170,7 @@ def create_api_key(user_id, policy_id=1, policy_data=None):
 
 
 def make_db():
-    connection = sqlite3.connect("authorization.db")
-    with connection:
+    with sqlite3.connect("authorization.db") as connection:
         connection.execute(
             """
             CREATE TABLE IF NOT EXISTS User (
@@ -208,7 +207,8 @@ def make_db():
             "CREATE UNIQUE INDEX IF NOT EXISTS User_Index ON ApiKey(UserId)"
         )
 
-        create_default_policies()
+    create_default_policies()
+
 
 type_lifecycle = "LC"
 
