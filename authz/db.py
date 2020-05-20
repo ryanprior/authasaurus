@@ -45,6 +45,7 @@ def get_api_keys(user_id):
         cursor = connection.cursor()
         cursor.execute("SELECT * FROM ApiKey WHERE UserId = ?", (user_id,))
         user = cursor.fetchall()
+        # TODO finish writing this function
 
 
 def create_user(username: str, login: bool, retry=100):
@@ -85,6 +86,7 @@ def get_user(api_key: str) -> Union[User, None]:
 
 
 def rotate_api_key(user: User, retry=100) -> str:
+    # TODO Make this work with new schema
     new_api_key = str(uuid.uuid4())
     connection = sqlite3.connect("authorization.db")
     try:
