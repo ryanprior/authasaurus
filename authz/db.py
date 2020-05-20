@@ -15,12 +15,14 @@ class User:
     name: str
     password_hash: str
 
+
 @dataclass
 class ApiKey:
     policy: str
     policy_data: str
     key: str
     user: User
+
 
 authz_db_salt = bcrypt.gensalt()
 SALT_FILE_NAME = environ.get("AUTHZ_SALT_FILE", "salt-value")
@@ -46,7 +48,7 @@ def get_api_keys(user_id):
 
 
 def create_user(username: str, login: bool, retry=100):
-    user_id = random.randint(1000000000, 9999999999)    
+    user_id = random.randint(1000000000, 9999999999)
     password = str(uuid.uuid4()) if login else None
     password_hash = (
         bcrypt.hashpw(password.encode("utf-8"), authz_db_salt) if login else None
@@ -70,7 +72,7 @@ def create_user(username: str, login: bool, retry=100):
 
 
 def get_user(api_key: str) -> Union[User, None]:
-    
+
     with sqlite3.connect("authorization.db") as connection:
         cursor = connection.cursor()
         cursor.execute(
@@ -116,7 +118,7 @@ def api_key_from_login(username: str, password: str):
         return result and result[0] or None
 
 
-def create_api_key(user_id, policy_id = 1, policy_data=None):
+def create_api_key(user_id, policy_id=1, policy_data=None):
     key = str(uuid.uuid4())
     with sqlite3.connect("authorization.db") as conn:
         conn.execute(
@@ -170,7 +172,7 @@ def make_db():
         )
 
         connection.execute(
-            """ 
+            """
             CREATE TABLE IF NOT EXISTS ApiKey (
                 Id INT PRIMARY KEY,
                 UserId INT,
@@ -192,13 +194,11 @@ def make_db():
 type_lifecycle = "LC"
 
 policies = [
-        ("Use Forever", type_lifecycle),
-        ("Use Until", type_lifecycle),
-        ("Use Once Before", type_lifecycle),
-        ("Rotate Every", type_lifecycle)
-    ]
-
-def create_default_policies():
+    ("Use Forever", type_lifecycle),
+    ("Use Until", type_lifecycle),
+    ("Use Once Before", type_lifecycle),
+    ("Rotate Every", type_lifecycle),
+]
 
 
     with sqlite3.connect("authorization.db") as connection:
@@ -207,4 +207,7 @@ def create_default_policies():
         cnt = cursor.fetchone()
         if cnt == 0:
             for name, t in policies:
-                connection.execute("INSERT INTO Policy (PolicyName, PolicyType) VALUES (?,?)", (name, t))     
+                connection.execute(
+                    "INSERT INTO Policy (PolicyName, PolicyType) VALUES (?,?)",
+                    (name, t),
+                )
