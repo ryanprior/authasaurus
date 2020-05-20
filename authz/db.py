@@ -220,10 +220,11 @@ policies = [
 ]
 
 
+def create_default_policies():
     with sqlite3.connect("authorization.db") as connection:
         cursor = connection.cursor()
         cursor.execute("SELECT COUNT(*) FROM Policy")
-        cnt = cursor.fetchone()
+        cnt = cursor.fetchone()[0]
         if cnt == 0:
             for name, t in policies:
                 connection.execute(
