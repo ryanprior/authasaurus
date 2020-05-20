@@ -182,10 +182,10 @@ def make_db():
 
         connection.execute(
             """
-            CREATE TABLE IF NOT EXISTS POLICY (
-                Id INT PRIMARY KEY,
+            CREATE TABLE IF NOT EXISTS Policy (
+                Id INTEGER NOT NULL PRIMARY KEY,
                 PolicyName TEXT NOT NULL,
-                PolicyType TEXT NOT NULL --we don't think it will change much, unnormalized for now        
+                PolicyType TEXT NOT NULL --we don't think it will change much, unnormalized for now
             )"""
         )
 
