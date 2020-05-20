@@ -9,15 +9,16 @@ import unittest
 
 endpoint = "http://localhost:5000"
 
-def unique_name(name):
-    return name + str(uuid4())
+
 
 class AuthzTests(unittest.TestCase):
 
-    def setUp(self):
-        self.user, _ = db.create_user(unique_name("tester"), False)
-        self.unauthorized_user, _ = db.create_user(unique_name("unauthorized"), False)
-        self.admin, self.admin_password = db.create_user(unique_name("admin"), True)
+    @classmethod
+    def setUpClass(self):
+        super(AuthzTests, self).setUpClass()
+        self.user, _ = db.create_user("tester", False)
+        self.unauthorized_user, _ = db.create_user("unauthorized", False)
+        self.admin, self.admin_password = db.create_user("admin", False)
 
     def test_call_no_header(self):
         resp = requests.get(endpoint)
@@ -30,7 +31,6 @@ class AuthzTests(unittest.TestCase):
 
     def test_call_correct_authentication(self):
         api_key = create_api_key(self.user.user_id)
-        print(f"created API key {api_key}")
         headers = {"Authorization": f"Token {api_key.key}"}
         resp = requests.get(endpoint, headers=headers)
         self.assertEqual(resp.status_code, http.client.OK)
@@ -112,7 +112,7 @@ class AuthzTests(unittest.TestCase):
             url, auth=HTTPBasicAuth(self.admin.name, self.admin_password), allow_redirects=False
         )
 
-        self.assertEqual(db.get_user(api_key.key), None)
+        self.assertEqual(db.get_user(api_key = api_key.key), None)
 
 
 if __name__ == "__main__":

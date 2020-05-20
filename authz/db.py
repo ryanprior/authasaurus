@@ -27,6 +27,11 @@ class ApiKey:
 authz_db_salt = bcrypt.gensalt()
 SALT_FILE_NAME = environ.get("AUTHZ_SALT_FILE", "salt-value")
 
+DB_FILE_NAME = environ.get("AUTHZ_DB_FILE","authorization.db")
+
+
+def db():
+    return sqlite3.connect(DB_FILE_NAME)
 
 def load_salt():
     global authz_db_salt
@@ -40,8 +45,7 @@ def load_salt():
 
 
 def get_api_keys(user_id):
-    connection = sqlite3.connect("authorization.db")
-    with connection:
+    with db() as connection:
         cursor = connection.cursor()
         cursor.execute("SELECT * FROM ApiKey WHERE UserId = ?", (user_id,))
         user = cursor.fetchall()
@@ -55,10 +59,8 @@ def create_user(username: str, login: bool, retry=100):
         bcrypt.hashpw(password.encode("utf-8"), authz_db_salt) if login else None
     )
 
-    connection = sqlite3.connect("authorization.db")
-
     try:
-        with connection:
+        with db() as connection:
             connection.execute(
                 "INSERT INTO User (Id, Username, PasswordHash) VALUES (?,?,?)",
                 (user_id, username, password_hash),
@@ -71,23 +73,33 @@ def create_user(username: str, login: bool, retry=100):
         raise
 
 
-def get_user(api_key: str) -> Union[User, None]:
+def get_user(api_key: str = None, username = None) -> Union[User, None]:
 
-    with sqlite3.connect("authorization.db") as connection:
+    with db() as connection:
         cursor = connection.cursor()
-        cursor.execute(
-            """
-            SELECT Id, Username, PasswordHash
-              FROM User
-              WHERE Id = (
-                SELECT UserId
-                  FROM ApiKey
-                  WHERE Key = ?
-                LIMIT 1
-              )
-            """,
-            (api_key,),
-        )
+        if api_key:
+            cursor.execute(
+                """
+                SELECT Id, Username, PasswordHash
+                FROM User
+                WHERE Id = (
+                    SELECT UserId
+                    FROM ApiKey
+                    WHERE Key = ?
+                    LIMIT 1
+                )
+                """,
+                (api_key,),
+            )
+        else:
+            cursor.execute(
+                """
+                SELECT Id, Username, PasswordHash
+                FROM User
+                WHERE Username = ?
+                """,
+                (username,),
+            )
 
         user = cursor.fetchone()
         return user and User(user[0], user[1], user[2])
@@ -96,9 +108,8 @@ def get_user(api_key: str) -> Union[User, None]:
 def rotate_api_key(user: User, retry=100) -> str:
     # TODO Make this work with new schema
     new_api_key = str(uuid.uuid4())
-    connection = sqlite3.connect("authorization.db")
     try:
-        with connection:
+        with db() as connection:
             connection.execute(
                 "UPDATE ApiKey SET Key = ? WHERE Id = ?", (new_api_key, user.user_id)
             )
@@ -114,8 +125,7 @@ def api_key_from_login(username: str, password: str):
     password_hash = password_hash = bcrypt.hashpw(
         password.encode("utf-8"), authz_db_salt
     )
-    connection = sqlite3.connect("authorization.db")
-    with connection:
+    with db() as connection:
         cursor = connection.cursor()
         cursor.execute(
             """
@@ -137,14 +147,14 @@ def api_key_from_login(username: str, password: str):
 
 def create_api_key(user_id, policy_id=1, policy_data=None):
     key = str(uuid.uuid4())
-    with sqlite3.connect("authorization.db") as conn:
-        conn.execute(
+    with db() as connection:
+        connection.execute(
             "INSERT INTO ApiKey (UserId, PolicyId, PolicyData, Key) VALUES (?,?,?,?)",
             (user_id, policy_id, policy_data, key),
         )
 
-    with sqlite3.connect("authorization.db") as conn:
-        cursor = conn.cursor()
+    with db() as connection:
+        cursor = connection.cursor()
         cursor.execute(
             """
             SELECT p.PolicyName, a.PolicyData, a.Key, u.Id, u.Username, u.PasswordHash
@@ -170,7 +180,7 @@ def create_api_key(user_id, policy_id=1, policy_data=None):
 
 
 def make_db():
-    with sqlite3.connect("authorization.db") as connection:
+    with db() as connection:
         connection.execute(
             """
             CREATE TABLE IF NOT EXISTS User (
@@ -204,7 +214,7 @@ def make_db():
         )
 
         connection.execute(
-            "CREATE UNIQUE INDEX IF NOT EXISTS User_Index ON ApiKey(UserId)"
+            "CREATE INDEX IF NOT EXISTS User_Index ON ApiKey(UserId)"
         )
 
     create_default_policies()
@@ -221,7 +231,7 @@ policies = [
 
 
 def create_default_policies():
-    with sqlite3.connect("authorization.db") as connection:
+    with db() as connection:
         cursor = connection.cursor()
         cursor.execute("SELECT COUNT(*) FROM Policy")
         cnt = cursor.fetchone()[0]

@@ -26,14 +26,14 @@ def authenticated_user(request):
     )
 
     if method:
-        return get_user(api_key), method
+        return get_user(api_key = api_key), method
     return None, None
 
 
 def login_user(request):
     api_key = api_key_from_basic_auth(request)
     if api_key:
-        return get_user(api_key), BASIC_AUTH
+        return get_user(api_key = api_key), BASIC_AUTH
     return None, None
 
 
