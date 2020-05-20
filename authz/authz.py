@@ -1,14 +1,13 @@
+import re
+from http.client import UNAUTHORIZED
+from flask import Response
 from .db import get_user, api_key_from_login
 from .settings import max_api_key_length
-from flask import Response
-from http.client import UNAUTHORIZED
-import re
 
 HEADER = "api key in header"
 COOKIE = "api key in cookie"
 BASIC_AUTH = "http basic auth"
 
-token_pattern = r"^Token\s+(.+)$"
 
 # TODO investigate more authz methods:
 # - API key in URL
@@ -39,6 +38,7 @@ def login_user(request):
 
 
 def api_key_from_header(request):
+    token_pattern = r"^Token\s+(.+)$"
     auth_header = request.headers.get("Authorization", "")[:max_api_key_length]
     match = re.search(token_pattern, auth_header)
     if match:
