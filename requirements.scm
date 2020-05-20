@@ -5,4 +5,5 @@
    "python-flask"
    "python-bcrypt"
    "python-black"
+   "python-wrapper"
    ))
