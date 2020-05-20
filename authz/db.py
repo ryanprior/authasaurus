@@ -77,10 +77,19 @@ def get_user(api_key: str) -> Union[User, None]:
     with sqlite3.connect("authorization.db") as connection:
         cursor = connection.cursor()
         cursor.execute(
-            """SELECT Id, Username, PasswordHash FROM User 
-               WHERE ApiKey = (SELECT LIMIT 1 Key FROM ApiKey WHERE Key = ?)""", 
-               (api_key,))
-        
+            """
+            SELECT Id, Username, PasswordHash
+              FROM User
+              WHERE Id = (
+                SELECT UserId
+                  FROM ApiKey
+                  WHERE Key = ?
+                LIMIT 1
+              )
+            """,
+            (api_key,),
+        )
+
         user = cursor.fetchone()
         return user and User(user[0], user[1], user[2])
 
@@ -111,9 +120,16 @@ def api_key_from_login(username: str, password: str):
         cursor = connection.cursor()
         cursor.execute(
             """
-          SELECT Key FROM ApiKey
-          WHERE UserId = (SELECT LIMIT 1 Id FROM User WHERE Username = ? AND PasswordHash = ?)
-        """,
+            SELECT Key
+              FROM ApiKey
+              WHERE UserId = (
+                SELECT Id
+                  FROM User
+                  WHERE Username = ?
+                  AND PasswordHash = ?
+                LIMIT 1
+              )
+            """,
             (username, password_hash),
         )
         result = cursor.fetchone()
@@ -130,11 +146,12 @@ def create_api_key(user_id, policy_id=1, policy_data=None):
 
         cursor = conn.cursor()
         cursor.execute(
-            """ 
-            SELECT p.PolicyName, a.PolicyData, a.Key, u.Id, u.Username, u.PasswordHash FROM ApiKey a
-            INNER JOIN User u ON a.UserId = u.Id
-            INNER JOIN Policy p ON p.Id = a.PolicyId
-            WHERE a.key = ?""",
+            """
+            SELECT p.PolicyName, a.PolicyData, a.Key, u.Id, u.Username, u.PasswordHash
+              FROM ApiKey a
+                INNER JOIN User u ON a.UserId = u.Id
+                INNER JOIN Policy p ON p.Id = a.PolicyId
+              WHERE a.Key LIKE ?""",
             (key,),
         )
 
