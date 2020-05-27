@@ -96,13 +96,16 @@ class AuthzTests(unittest.TestCase):
         resp = requests.post(url, headers=headers, allow_redirects=False)
         self.assertEqual(resp.status_code, http.client.FOUND)
         self.assertEqual(resp.headers.get("Location"), endpoint + referrer)
-
+        self.assertEqual(resp.cookies.get("api-key"), None)
+        
         #test that we can login with basic HTTP auth
         resp = requests.post(
             url, auth=HTTPBasicAuth(self.admin.name, self.admin_password), allow_redirects=False
         )
         self.assertEqual(resp.status_code, http.client.FOUND)
         self.assertEqual(resp.headers.get("Location"), endpoint + redirect)
+        self.assertEqual(resp.cookies.get("api-key"), api_key)
+
 
     def test_rotate_api_key(self):
 
