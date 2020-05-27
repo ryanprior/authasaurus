@@ -29,6 +29,8 @@ SALT_FILE_NAME = environ.get("AUTHZ_SALT_FILE", "salt-value")
 
 DB_FILE_NAME = environ.get("AUTHZ_DB_FILE","authorization.db")
 
+STATUS_ACTIVE = 'ACTIVE'
+STATUS_INACTIVE = 'INACTIVE'
 
 def db():
     return sqlite3.connect(DB_FILE_NAME)
@@ -85,11 +87,11 @@ def get_user(api_key: str = None, username = None) -> Union[User, None]:
                 WHERE Id = (
                     SELECT UserId
                     FROM ApiKey
-                    WHERE Key = ?
+                    WHERE Key = ? AND Status = ?
                     LIMIT 1
                 )
                 """,
-                (api_key,),
+                (api_key, STATUS_ACTIVE),
             )
         else:
             cursor.execute(
@@ -105,14 +107,29 @@ def get_user(api_key: str = None, username = None) -> Union[User, None]:
         return user and User(user[0], user[1], user[2])
 
 
-def rotate_api_key(user: User, retry=100) -> str:
+def rotate_api_key(key: str, retry=100) -> str:
     # TODO Make this work with new schema
     new_api_key = str(uuid.uuid4())
     try:
-        with db() as connection:
-            connection.execute(
-                "UPDATE ApiKey SET Key = ? WHERE Id = ?", (new_api_key, user.user_id)
-            )
+        connection = db()
+        cursor = connection.cursor()
+        cursor.execute("SELECT UserId, PolicyId, PolicyData, Status FROM ApiKey WHERE Key = ?", (key,))
+        result = cursor.fetchone()
+        print(f"RESULT:{result}")
+        if not result:
+            raise ValueError("No such api key")
+
+        user_id, policy_id, policy_data, status = result
+
+        if status != STATUS_ACTIVE:
+            raise ValueError("No such active api key")
+        
+        connection.execute(
+            "UPDATE ApiKey SET Status = ? WHERE Key = ?", (STATUS_INACTIVE, key)
+        )
+
+        connection.execute("INSERT INTO ApiKey (UserId, PolicyId, PolicyData, Status, Key)")
+        return create_api_key(user_id, policy_id, policy_data, connection)
     except sqlite3.IntegrityError:
         if retry > 0:
             return rotate_api_key(user, retry - 1)
@@ -138,19 +155,20 @@ def api_key_from_login(username: str, password: str):
                   AND PasswordHash = ?
                 LIMIT 1
               )
+              AND Status = ?
             """,
-            (username, password_hash),
+            (username, password_hash, STATUS_ACTIVE)
         )
         result = cursor.fetchone()
         return result and result[0] or None
 
 
-def create_api_key(user_id, policy_id=1, policy_data=None):
+def create_api_key(user_id, policy_id=1, policy_data=None, conn = None):
     key = str(uuid.uuid4())
-    with db() as connection:
+    with (conn or db()) as connection:
         connection.execute(
-            "INSERT INTO ApiKey (UserId, PolicyId, PolicyData, Key) VALUES (?,?,?,?)",
-            (user_id, policy_id, policy_data, key),
+            "INSERT INTO ApiKey (UserId, PolicyId, PolicyData, Key, Status) VALUES (?,?,?,?,?)",
+            (user_id, policy_id, policy_data, key, STATUS_ACTIVE),
         )
 
     with db() as connection:
@@ -207,6 +225,7 @@ def make_db():
                 PolicyId INT,
                 PolicyData TEXT,
                 Key TEXT NOT NULL UNIQUE,
+                Status TEXT NOT NULL, 
                 FOREIGN KEY (UserId) REFERENCES User(Id),
                 FOREIGN KEY (PolicyId) REFERENCES POLICY(Id)
             )
