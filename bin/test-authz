@@ -2,19 +2,42 @@
 
 set -eu
 
-export AUTHZ_DB_FILE="test_data/Authorization-$RANDOM-$RANDOM.db"
-echo "🥞 Using $AUTHZ_DB_FILE for testing!"
-python -m authz.test.server &
-sleep 1
+# check that nothing running on test port
+if lsof -i:5000; then
+    echo "$0: error: test port (5000) already in use, aborting."
+    exit 1
+fi
 
+# work in project root
+cd "$(git rev-parse --show-toplevel)"
+
+# create folder for data from this run
+id="$RANDOM-$RANDOM"
+data_dir="test_data/$id"
+mkdir -p "$data_dir"
+
+# update latest test data symlink
+rm -f test_data/latest
+ln -s $id test_data/latest
+
+# run test server
+export AUTHZ_DB_FILE="$data_dir/test.db"
+WSGI_LOG="$data_dir/wsgi.log"
+export FLASK_ENV=testing
+(python -m authz.test.server 2>&1) >"$WSGI_LOG" &
+
+
+# run pytest
+TEST_LOG="$data_dir/test.log"
 set +e
-
-python -m authz.test.tests
+python -m authz.test.tests > >(tee -a "$TEST_LOG") 2> >(tee -a "$TEST_LOG">&2)
 result=$?
-
 set -e
 
 # stop server
 kill $(lsof -i:5000 -t)
+
+# print summary
+echo "🔄 Updated test_data/latest → $data_dir"
 
 exit $result
