@@ -3,13 +3,18 @@
 set -eu
 
 export AUTHZ_DB_FILE="test_data/Authorization-$RANDOM-$RANDOM.db"
+echo "🥞 Using $AUTHZ_DB_FILE for testing!"
 python -m authz.test.server &
+sleep 1
 
 set +e
 
 python -m authz.test.tests
+result=$?
 
 set -e
 
 # stop server
 kill $(lsof -i:5000 -t)
+
+exit $result
