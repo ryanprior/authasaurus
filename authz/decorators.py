@@ -8,8 +8,7 @@ from http.client import INTERNAL_SERVER_ERROR
 def call_with_authz(func, authz, args, kwargs):
     if signature(func).parameters.get('authz', None):
         return func(*args, authz=authz, **kwargs)
-    else:
-        return func(*args, **kwargs)
+    return func(*args, **kwargs)
 
 def auth_required(func=None, users=None):
 
@@ -64,11 +63,9 @@ def auth_login(func):
 
         if user is not None:
             return call_with_authz(func, authz, args, kwargs)
-        else:
-            referrer = request.args.get("referrer") or request.form.get("referrer")
-            if referrer is None:
-                return not_authorized()
-            else:
-                return redirect(referrer)
+        referrer = request.args.get("referrer") or request.form.get("referrer")
+        if referrer is None:
+            return not_authorized()
+        return redirect(referrer)
 
     return check_login
