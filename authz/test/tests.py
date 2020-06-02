@@ -109,12 +109,16 @@ class AuthzTests(unittest.TestCase):
     def test_rotate_api_key(self):
 
         api_key = create_api_key(self.admin.user_id)
+        cookies = {'api-key': api_key.key}
         url = endpoint + "/logout"
         resp = requests.post(
-            url, auth=HTTPBasicAuth(self.admin.name, self.admin_password), allow_redirects=False
+            url,
+            cookies=cookies,
+            allow_redirects=False,
         )
 
-        self.assertEqual(db.get_user(api_key = api_key.key), None)
+        self.assertEqual(resp.status_code, http.client.FOUND)
+        self.assertEqual(db.get_user(api_key=api_key.key), None)
 
 
 if __name__ == "__main__":
