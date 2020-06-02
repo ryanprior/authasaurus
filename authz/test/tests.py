@@ -18,7 +18,7 @@ class AuthzTests(unittest.TestCase):
         super(AuthzTests, self).setUpClass()
         self.user, _ = db.create_user("tester", False)
         self.unauthorized_user, _ = db.create_user("unauthorized", False)
-        self.admin, self.admin_password = db.create_user("admin", False)
+        self.admin, self.admin_password = db.create_user("admin", True)
 
     def test_call_no_header(self):
         resp = requests.get(endpoint)
