@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -eu
+
+export AUTHZ_DB_FILE="test_data/Authorization-$RANDOM-$RANDOM.db"
+python -m authz.test.server &
+
+set +e
+
+python -m authz.test.tests
+
+set -e
+
+# stop server
+kill $(lsof -i:5000 -t)
