@@ -1,7 +1,7 @@
 import re
 from http.client import UNAUTHORIZED
 from flask import Response
-from .db import get_user, api_key_from_login
+from .db import get_user, user_from_login
 from .settings import max_api_key_length
 
 HEADER = "api key in header"
@@ -17,7 +17,6 @@ def authenticated_user(request):
     methods = (
         (api_key_from_header, HEADER),
         (api_key_from_cookie, COOKIE),
-        (api_key_from_basic_auth, BASIC_AUTH),
         (lambda r: True, None),
     )
     # try methods until one returns a truthy value
@@ -31,10 +30,7 @@ def authenticated_user(request):
 
 
 def login_user(request):
-    api_key = api_key_from_basic_auth(request)
-    if api_key:
-        return get_user(api_key = api_key), BASIC_AUTH
-    return None, None
+    return user_from_basic_auth(request), None, BASIC_AUTH
 
 
 def api_key_from_header(request):
@@ -51,11 +47,11 @@ def api_key_from_cookie(request):
     return request.cookies.get("api-key", None)
 
 
-def api_key_from_basic_auth(request):
+def user_from_basic_auth(request):
     authz = request.authorization
     if authz and authz.type == "basic":
         username, password = authz.username, authz.password
-        return api_key_from_login(username, password)
+        return user_from_login(username, password)
     return None
 
 

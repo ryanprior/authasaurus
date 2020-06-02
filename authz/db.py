@@ -16,6 +16,9 @@ class User:
     password_hash: str
 
 
+User_maybe = Union[User, None]
+
+
 @dataclass
 class ApiKey:
     policy: str
@@ -75,7 +78,7 @@ def create_user(username: str, login: bool, retry=100):
         raise
 
 
-def get_user(api_key: str = None, username = None) -> Union[User, None]:
+def get_user(api_key: str = None, username = None) -> User_maybe:
 
     with db() as connection:
         cursor = connection.cursor()
@@ -137,29 +140,27 @@ def rotate_api_key(key: str, retry=100) -> str:
     return new_api_key
 
 
-def api_key_from_login(username: str, password: str):
-    password_hash = password_hash = bcrypt.hashpw(
+def user_from_login(username: str, password: str) -> User_maybe:
+    password_hash = bcrypt.hashpw(
         password.encode("utf-8"), authz_db_salt
     )
     with db() as connection:
         cursor = connection.cursor()
         cursor.execute(
             """
-            SELECT Key
-              FROM ApiKey
-              WHERE UserId = (
-                SELECT Id
-                  FROM User
-                  WHERE Username = ?
-                  AND PasswordHash = ?
-                LIMIT 1
-              )
-              AND Status = ?
+            SELECT Id, UserName, PasswordHash
+              FROM User
+              WHERE Username = ?
+              AND PasswordHash = ?
+            LIMIT 1
             """,
-            (username, password_hash, STATUS_ACTIVE)
+            (username, password_hash)
         )
         result = cursor.fetchone()
-        return result and result[0] or None
+        if not result:
+            return None
+        user_id, name, password_hash = result
+        return User(user_id, name, password_hash)
 
 
 def create_api_key(user_id, policy_id=1, policy_data=None, conn = None):
