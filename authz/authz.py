@@ -26,8 +26,8 @@ def authenticated_user(request):
     )
 
     if method:
-        return get_user(api_key = api_key), method
-    return None, None
+        return get_user(api_key = api_key), api_key, method
+    return None, None, None
 
 
 def login_user(request):

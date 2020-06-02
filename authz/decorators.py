@@ -19,7 +19,7 @@ def auth_required(func=None, users=None):
     @wraps(func)
     def check_auth(*args, **kwargs):
         authz = authenticated_user(request)
-        user, _ = authz
+        user, *_ = authz
 
         if user is None:
             return not_authorized()
@@ -46,7 +46,7 @@ def auth_user(func=None, arg="username"):
             return Response("route configuration fault", INTERNAL_SERVER_ERROR)
 
         authz = authenticated_user(request)
-        user, _ = authz
+        user, *_ = authz
 
         if user and user.name == username:
             return call_with_authz(func, authz, args, kwargs)
@@ -60,7 +60,7 @@ def auth_login(func):
     @wraps(func)
     def check_login(*args, **kwargs):
         authz = login_user(request)
-        user, _ = authz
+        user, *_ = authz
 
         if user is not None:
             return call_with_authz(func, authz, args, kwargs)
