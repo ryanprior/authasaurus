@@ -123,12 +123,11 @@ def rotate_api_key(key: str, retry=100) -> str:
 
         if status != STATUS_ACTIVE:
             raise ValueError("No such active api key")
-        
+
         connection.execute(
             "UPDATE ApiKey SET Status = ? WHERE Key = ?", (STATUS_INACTIVE, key)
         )
 
-        connection.execute("INSERT INTO ApiKey (UserId, PolicyId, PolicyData, Status, Key)")
         return create_api_key(user_id, policy_id, policy_data, connection)
     except sqlite3.IntegrityError:
         if retry > 0:

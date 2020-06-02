@@ -24,7 +24,6 @@ def login(authz):
 def logout(authz):
     url = request.args.get("redirect") or request.form.get("redirect", "/")
     response = redirect(url)
-    rotate_api_key(user)
     _, api_key, _ = authz
+    rotate_api_key(api_key)
     return response
-
