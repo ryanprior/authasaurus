@@ -4,7 +4,7 @@ import http
 from uuid import uuid4
 
 from .. import db
-from ..db import create_api_key
+from ..db import create_api_key, get_user
 import unittest
 
 endpoint = "http://localhost:5000"
@@ -104,8 +104,7 @@ class AuthzTests(unittest.TestCase):
         )
         self.assertEqual(resp.status_code, http.client.FOUND)
         self.assertEqual(resp.headers.get("Location"), endpoint + redirect)
-        self.assertEqual(resp.cookies.get("api-key"), api_key)
-
+        self.assertEqual(get_user(resp.cookies.get("api-key")), self.admin)
 
     def test_rotate_api_key(self):
 
