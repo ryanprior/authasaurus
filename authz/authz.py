@@ -11,6 +11,7 @@ BASIC_AUTH = "http basic auth"
 
 # TODO investigate more authz methods:
 # - API key in URL
+# - Basic HTTP auth
 
 
 def authenticated_user(request):
