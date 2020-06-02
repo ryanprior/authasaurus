@@ -84,24 +84,25 @@ class AuthzTests(unittest.TestCase):
         referrer = "/login"
         redirect = "/"
         url = endpoint + f"/login?referrer={referrer}&redirect={redirect}"
+        login_user, login_user_password = db.create_user("login", True)
+
+        # test that we can login with basic HTTP auth
+        resp = requests.post(
+            url,
+            auth=HTTPBasicAuth(login_user.name, login_user_password),
+            allow_redirects=False,
+        )
+        self.assertEqual(resp.status_code, http.client.FOUND)
+        self.assertEqual(resp.headers.get("Location"), endpoint + redirect)
+        self.assertEqual(get_user(resp.cookies.get("api-key")), login_user)
 
         # first test that we can't login with an API key in headers
-        api_key = create_api_key(self.admin.user_id)
+        api_key = create_api_key(login_user.user_id)
         headers = {"Authorization": f"Token {api_key.key}"}
         resp = requests.post(url, headers=headers, allow_redirects=False)
         self.assertEqual(resp.status_code, http.client.FOUND)
         self.assertEqual(resp.headers.get("Location"), endpoint + referrer)
         self.assertEqual(resp.cookies.get("api-key"), None)
-
-        # test that we can login with basic HTTP auth
-        resp = requests.post(
-            url,
-            auth=HTTPBasicAuth(self.admin.name, self.admin_password),
-            allow_redirects=False,
-        )
-        self.assertEqual(resp.status_code, http.client.FOUND)
-        self.assertEqual(resp.headers.get("Location"), endpoint + redirect)
-        self.assertEqual(get_user(resp.cookies.get("api-key")), self.admin)
 
     def test_rotate_api_key(self):
 
