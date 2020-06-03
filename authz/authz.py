@@ -1,7 +1,9 @@
 import re
+from datetime import datetime
+from typing import Tuple
 from http.client import UNAUTHORIZED
 from flask import Response
-from .db import get_user, user_from_login
+from .db import User, ApiKey, get_user, user_from_login, api_key
 from .settings import max_api_key_length
 from .constants import (
     POLICY_USE_FOREVER,
@@ -20,19 +22,32 @@ BASIC_AUTH = "http basic auth"
 # - Basic HTTP auth
 
 
-def authenticated_user(request):
+def key_within_policy(key: ApiKey) -> bool:
+    check_expiration = lambda exp: datetime.fromisoformat(exp) > datetime.now()
+    return {
+        POLICY_USE_FOREVER: lambda _: True,
+        POLICY_USE_UNTIL: check_expiration,
+        POLICY_USE_ONCE_BEFORE: check_expiration,
+        POLICY_ROTATE_EVERY: lambda _: True,
+    }.get(key.policy, lambda _: False)(key.policy_data)
+
+
+def authenticated_user(request) -> Tuple[User, ApiKey, str]:
     methods = (
         (api_key_from_header, HEADER),
         (api_key_from_cookie, COOKIE),
         (lambda r: True, None),
     )
     # try methods until one returns a truthy value
-    api_key, method = next(
+    key_string, method = next(
         ((key, method) for func, method in methods if (key := func(request)))
     )
 
-    if method:
-        return get_user(api_key = api_key), api_key, method
+    if not method:
+        return None, None, None
+    if key := api_key(key_string):
+        # Test whether API key is within policy
+        return (key.user, key, method) if key_within_policy(key) else (None, None, None)
     return None, None, None
 
 
