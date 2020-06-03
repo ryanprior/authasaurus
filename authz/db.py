@@ -1,13 +1,12 @@
-from . import settings
 from dataclasses import dataclass
 from os import environ
 from os.path import isfile
 from typing import Union
-import bcrypt
 import random
 import sqlite3
 import uuid
 from . import settings, constants
+import bcrypt
 
 
 @dataclass
@@ -17,7 +16,7 @@ class User:
     password_hash: str
 
 
-User_maybe = Union[User, None]
+UserMaybe = Union[User, None]
 
 
 @dataclass
@@ -28,16 +27,20 @@ class ApiKey:
     user: User
 
 
+ApiKeyMaybe = Union[ApiKey, None]
+
 authz_db_salt = bcrypt.gensalt()
 SALT_FILE_NAME = environ.get("AUTHZ_SALT_FILE", "salt-value")
 
-DB_FILE_NAME = environ.get("AUTHZ_DB_FILE","authorization.db")
+DB_FILE_NAME = environ.get("AUTHZ_DB_FILE", "authorization.db")
 
-STATUS_ACTIVE = 'ACTIVE'
-STATUS_INACTIVE = 'INACTIVE'
+STATUS_ACTIVE = "ACTIVE"
+STATUS_INACTIVE = "INACTIVE"
+
 
 def db():
     return sqlite3.connect(DB_FILE_NAME)
+
 
 def load_salt():
     global authz_db_salt
@@ -102,7 +105,7 @@ def create_user(username: str, login: bool, retry=100):
         raise
 
 
-def get_user(api_key: str = None, username = None) -> User_maybe:
+def get_user(api_key: str = None, username=None) -> UserMaybe:
 
     with db() as connection:
         cursor = connection.cursor()
@@ -140,7 +143,10 @@ def rotate_api_key(key: str, retry=100) -> str:
     try:
         connection = db()
         cursor = connection.cursor()
-        cursor.execute("SELECT UserId, PolicyId, PolicyData, Status FROM ApiKey WHERE Key = ?", (key,))
+        cursor.execute(
+            "SELECT UserId, PolicyId, PolicyData, Status FROM ApiKey WHERE Key = ?",
+            (key,),
+        )
         result = cursor.fetchone()
         print(f"RESULT:{result}")
         if not result:
@@ -164,10 +170,8 @@ def rotate_api_key(key: str, retry=100) -> str:
     return new_api_key
 
 
-def user_from_login(username: str, password: str) -> User_maybe:
-    password_hash = bcrypt.hashpw(
-        password.encode("utf-8"), authz_db_salt
-    )
+def user_from_login(username: str, password: str) -> UserMaybe:
+    password_hash = bcrypt.hashpw(password.encode("utf-8"), authz_db_salt)
     with db() as connection:
         cursor = connection.cursor()
         cursor.execute(
@@ -178,7 +182,7 @@ def user_from_login(username: str, password: str) -> User_maybe:
               AND PasswordHash = ?
             LIMIT 1
             """,
-            (username, password_hash)
+            (username, password_hash),
         )
         result = cursor.fetchone()
         if not result:
@@ -187,7 +191,9 @@ def user_from_login(username: str, password: str) -> User_maybe:
         return User(user_id, name, password_hash)
 
 
-def create_api_key(user_id, policy_id=1, policy_data=None, conn = None):
+def create_api_key(
+    user_id, policy_id=1, policy_data=None, conn=None
+):
     key = str(uuid.uuid4())
     with (conn or db()) as connection:
         connection.execute(
@@ -226,16 +232,14 @@ def make_db():
                 PolicyId INT,
                 PolicyData TEXT,
                 Key TEXT NOT NULL UNIQUE,
-                Status TEXT NOT NULL, 
+                Status TEXT NOT NULL,
                 FOREIGN KEY (UserId) REFERENCES User(Id),
                 FOREIGN KEY (PolicyId) REFERENCES POLICY(Id)
             )
         """
         )
 
-        connection.execute(
-            "CREATE INDEX IF NOT EXISTS User_Index ON ApiKey(UserId)"
-        )
+        connection.execute("CREATE INDEX IF NOT EXISTS User_Index ON ApiKey(UserId)")
 
     create_default_policies()
 
