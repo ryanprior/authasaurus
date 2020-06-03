@@ -25,5 +25,5 @@ def logout(authz):
     url = request.args.get("redirect") or request.form.get("redirect", "/")
     response = redirect(url)
     _, api_key, _ = authz
-    rotate_api_key(api_key)
+    rotate_api_key(api_key.key)
     return response
