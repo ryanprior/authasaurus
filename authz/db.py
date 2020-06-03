@@ -50,6 +50,29 @@ def load_salt():
     return authz_db_salt
 
 
+def api_key(key: str) -> ApiKeyMaybe:
+    with db() as connection:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT p.PolicyName, a.PolicyData, a.Key, u.Id, u.Username, u.PasswordHash
+            FROM ApiKey a
+              INNER JOIN User u ON a.UserId = u.Id
+              INNER JOIN Policy p ON p.Id = a.PolicyId
+            WHERE a.Key LIKE ?
+            """,
+            (key,),
+        )
+
+        if result := cursor.fetchone():
+            (policy_name, policy_data, key, user_id, username, password_hash,) = result
+
+            return ApiKey(
+                policy_name, policy_data, key, User(user_id, username, password_hash)
+            )
+    return None
+
+
 def get_api_keys(user_id):
     with db() as connection:
         cursor = connection.cursor()
@@ -172,30 +195,7 @@ def create_api_key(user_id, policy_id=1, policy_data=None, conn = None):
             (user_id, policy_id, policy_data, key, STATUS_ACTIVE),
         )
 
-    with db() as connection:
-        cursor = connection.cursor()
-        cursor.execute(
-            """
-            SELECT p.PolicyName, a.PolicyData, a.Key, u.Id, u.Username, u.PasswordHash
-              FROM ApiKey a
-                INNER JOIN User u ON a.UserId = u.Id
-                INNER JOIN Policy p ON p.Id = a.PolicyId
-              WHERE a.Key LIKE ?""",
-            (key,),
-        )
-
-        (
-            policy_name,
-            policy_data,
-            api_key,
-            user_id,
-            username,
-            password_hash,
-        ) = cursor.fetchone()
-
-        return ApiKey(
-            policy_name, policy_data, api_key, User(user_id, username, password_hash)
-        )
+    return api_key(key)
 
 
 def make_db():
