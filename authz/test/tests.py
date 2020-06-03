@@ -2,7 +2,9 @@ import requests
 from requests.auth import HTTPBasicAuth
 import http
 from uuid import uuid4
+from datetime import datetime, timedelta
 
+from ..constants import POLICY_USE_UNTIL, POLICY_USE_ONCE_BEFORE, POLICY_ROTATE_EVERY
 from .. import db
 from ..db import create_api_key, get_user
 import unittest
@@ -105,18 +107,23 @@ class AuthzTests(unittest.TestCase):
         self.assertEqual(resp.cookies.get("api-key"), None)
 
     def test_rotate_api_key(self):
-
         api_key = create_api_key(self.admin.user_id)
-        cookies = {'api-key': api_key.key}
+        cookies = {"api-key": api_key.key}
         url = endpoint + "/logout"
-        resp = requests.post(
-            url,
-            cookies=cookies,
-            allow_redirects=False,
-        )
+        resp = requests.post(url, cookies=cookies, allow_redirects=False,)
 
         self.assertEqual(resp.status_code, http.client.FOUND)
         self.assertEqual(db.get_user(api_key=api_key.key), None)
+
+    def test_lifecycle_use_until(self):
+        api_key = create_api_key(
+            self.admin.user_id,
+            policy_id=2,
+            policy_data=datetime.now() - timedelta(days=1),
+        )
+        headers = {"Authorization": f"Token {api_key.key}"}
+        resp = requests.get(endpoint, headers=headers)
+        self.assertEqual(resp.status_code, http.client.UNAUTHORIZED)
 
 
 if __name__ == "__main__":
