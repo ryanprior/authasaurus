@@ -7,6 +7,7 @@ import bcrypt
 import random
 import sqlite3
 import uuid
+from . import settings, constants
 
 
 @dataclass
@@ -242,10 +243,10 @@ def make_db():
 type_lifecycle = "LC"
 
 policies = [
-    ("Use Forever", type_lifecycle),
-    ("Use Until", type_lifecycle),
-    ("Use Once Before", type_lifecycle),
-    ("Rotate Every", type_lifecycle),
+    (constants.POLICY_USE_FOREVER, type_lifecycle),
+    (constants.POLICY_USE_UNTIL, type_lifecycle),
+    (constants.POLICY_USE_ONCE_BEFORE, type_lifecycle),
+    (constants.POLICY_ROTATE_EVERY, type_lifecycle),
 ]
 
 
