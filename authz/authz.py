@@ -16,6 +16,7 @@ from .constants import (
     POLICY_USE_FOREVER,
     POLICY_USE_UNTIL,
     POLICY_USE_ONCE_BEFORE,
+    STATUS_ACTIVE,
 )
 
 
@@ -34,6 +35,8 @@ BASIC_AUTH = "http basic auth"
 
 
 def key_within_policy(key: ApiKey) -> bool:
+    if not key.status == STATUS_ACTIVE:
+        return False
     check_expiration = lambda exp: datetime.fromisoformat(exp) > datetime.now()
     return {
         POLICY_USE_FOREVER: lambda _: True,
