@@ -4,7 +4,7 @@ import http
 from uuid import uuid4
 from datetime import datetime, timedelta
 
-from ..constants import POLICY_USE_UNTIL, POLICY_USE_ONCE_BEFORE, POLICY_ROTATE_EVERY
+from ..constants import POLICY_USE_UNTIL, POLICY_USE_ONCE_BEFORE
 from .. import db
 from ..db import create_api_key, get_user
 import unittest

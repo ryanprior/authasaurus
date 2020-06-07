@@ -16,7 +16,6 @@ from .constants import (
     POLICY_USE_FOREVER,
     POLICY_USE_UNTIL,
     POLICY_USE_ONCE_BEFORE,
-    POLICY_ROTATE_EVERY,
 )
 
 
@@ -40,7 +39,6 @@ def key_within_policy(key: ApiKey) -> bool:
         POLICY_USE_FOREVER: lambda _: True,
         POLICY_USE_UNTIL: check_expiration,
         POLICY_USE_ONCE_BEFORE: check_expiration,
-        POLICY_ROTATE_EVERY: lambda _: True,
     }.get(key.policy, lambda _: False)(key.policy_data)
 
 

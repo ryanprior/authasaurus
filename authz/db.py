@@ -250,7 +250,6 @@ policies = [
     (constants.POLICY_USE_FOREVER, type_lifecycle),
     (constants.POLICY_USE_UNTIL, type_lifecycle),
     (constants.POLICY_USE_ONCE_BEFORE, type_lifecycle),
-    (constants.POLICY_ROTATE_EVERY, type_lifecycle),
 ]
 
 
