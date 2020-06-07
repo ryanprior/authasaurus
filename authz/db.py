@@ -147,37 +147,26 @@ def get_user(api_key: str = None, username=None) -> UserMaybe:
         return user and User(user[0], user[1], user[2])
 
 
-def rotate_api_key(key: str, retry=100) -> str:
-    # TODO Make this work with new schema
-    new_api_key = str(uuid.uuid4())
-    try:
-        connection = db()
-        cursor = connection.cursor()
-        cursor.execute(
-            "SELECT UserId, PolicyId, PolicyData, Status FROM ApiKey WHERE Key = ?",
-            (key,),
-        )
-        result = cursor.fetchone()
-        print(f"RESULT:{result}")
-        if not result:
-            raise ValueError("No such api key")
+def deactivate_api_key(key_string: str) -> ApiKey:
+    key = api_key(key_string)
+    if not key or key.status != constants.STATUS_ACTIVE:
+        raise ValueError("No such active API key")
 
-        user_id, policy_id, policy_data, status = result
-
-        if status != STATUS_ACTIVE:
-            raise ValueError("No such active api key")
-
+    with db() as connection:
         connection.execute(
-            "UPDATE ApiKey SET Status = ? WHERE Key = ?", (STATUS_INACTIVE, key)
+            "UPDATE ApiKey SET Status = ? WHERE Key = ?",
+            (constants.STATUS_INACTIVE, key.key),
         )
+    key.status = constants.STATUS_INACTIVE
+    return key
 
-        return create_api_key(user_id, policy_id, policy_data, connection)
-    except sqlite3.IntegrityError:
-        if retry > 0:
-            return rotate_api_key(user, retry - 1)
-        raise
 
-    return new_api_key
+def rotate_api_key(key: str, retry=100) -> str:
+    key = deactivate_api_key(key)
+
+    return create_api_key(
+        key.user.user_id, constants.POLICY_IDS[key.policy], key.policy_data
+    )
 
 
 def user_from_login(username: str, password: str) -> UserMaybe:
@@ -201,16 +190,18 @@ def user_from_login(username: str, password: str) -> UserMaybe:
         return User(user_id, name, password_hash)
 
 
-def create_api_key(
-    user_id, policy_id=1, policy_data=None, conn=None
-):
+def create_api_key(user_id, policy_id=1, policy_data=None, conn=None, retry=100):
     key = str(uuid.uuid4())
-    with (conn or db()) as connection:
-        connection.execute(
-            "INSERT INTO ApiKey (UserId, PolicyId, PolicyData, Key, Status) VALUES (?,?,?,?,?)",
-            (user_id, policy_id, policy_data, key, STATUS_ACTIVE),
-        )
-
+    try:
+        with (conn or db()) as connection:
+            connection.execute(
+                "INSERT INTO ApiKey (UserId, PolicyId, PolicyData, Key, Status) VALUES (?,?,?,?,?)",
+                (user_id, policy_id, policy_data, key, constants.STATUS_ACTIVE),
+            )
+    except sqlite3.IntegrityError:
+        if retry > 0:
+            return create_api_key(user_id, policy_id, policy_data, conn, retry - 1)
+        raise
     return api_key(key)
 
 
