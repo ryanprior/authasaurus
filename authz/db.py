@@ -34,9 +34,6 @@ SALT_FILE_NAME = environ.get("AUTHZ_SALT_FILE", "salt-value")
 
 DB_FILE_NAME = environ.get("AUTHZ_DB_FILE", "authorization.db")
 
-STATUS_ACTIVE = "ACTIVE"
-STATUS_INACTIVE = "INACTIVE"
-
 
 def db():
     return sqlite3.connect(DB_FILE_NAME)
@@ -121,7 +118,7 @@ def get_user(api_key: str = None, username=None) -> UserMaybe:
                     LIMIT 1
                 )
                 """,
-                (api_key, STATUS_ACTIVE),
+                (api_key, constants.STATUS_ACTIVE),
             )
         else:
             cursor.execute(
