@@ -53,7 +53,7 @@ def authenticated_user(request) -> AuthzTripleMaybe:
     )
     # try methods until one returns a truthy value
     key_string, method = next(
-        ((key, method) for func, method in methods if (key := func(request)))
+        ((k, method) for func, method in methods if (k := func(request)))
     )
 
     if not method:
