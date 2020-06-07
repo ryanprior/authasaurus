@@ -21,10 +21,11 @@ UserMaybe = Union[User, None]
 
 @dataclass
 class ApiKey:
+    user: User
     policy: str
     policy_data: str
     key: str
-    user: User
+    status: str
 
 
 ApiKeyMaybe = Union[ApiKey, None]
@@ -55,7 +56,7 @@ def api_key(key: str) -> ApiKeyMaybe:
         cursor = connection.cursor()
         cursor.execute(
             """
-            SELECT p.PolicyName, a.PolicyData, a.Key, u.Id, u.Username, u.PasswordHash
+            SELECT p.PolicyName, a.PolicyData, a.Key, a.Status, u.Id, u.Username, u.PasswordHash
             FROM ApiKey a
               INNER JOIN User u ON a.UserId = u.Id
               INNER JOIN Policy p ON p.Id = a.PolicyId
@@ -65,10 +66,22 @@ def api_key(key: str) -> ApiKeyMaybe:
         )
 
         if result := cursor.fetchone():
-            (policy_name, policy_data, key, user_id, username, password_hash,) = result
+            (
+                policy_name,
+                policy_data,
+                key,
+                status,
+                user_id,
+                username,
+                password_hash,
+            ) = result
 
             return ApiKey(
-                policy_name, policy_data, key, User(user_id, username, password_hash)
+                User(user_id, username, password_hash),
+                policy_name,
+                policy_data,
+                key,
+                status,
             )
     return None
 
