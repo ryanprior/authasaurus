@@ -56,12 +56,12 @@ def authenticated_user(request) -> AuthzTripleMaybe:
         ((k, method) for func, method in methods if (k := func(request)))
     )
 
-    if not method:
+    if not method or not (key := api_key(key_string)) or not key_within_policy(key):
         return None, None, None
-    if key := api_key(key_string):
-        # Test whether API key is within policy
-        return (key.user, key, method) if key_within_policy(key) else (None, None, None)
-    return None, None, None
+    # Test whether API key is within policy
+    if key.policy == POLICY_USE_ONCE_BEFORE:
+        deactivate_api_key(key.key)
+    return (key.user, key, method)
 
 
 def login_user(request) -> AuthzTriple:
