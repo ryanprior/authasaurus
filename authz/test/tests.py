@@ -125,6 +125,27 @@ class AuthzTests(unittest.TestCase):
         resp = requests.get(endpoint, headers=headers)
         self.assertEqual(resp.status_code, http.client.UNAUTHORIZED)
 
+    def test_lifecycle_use_once_before(self):
+        api_key = create_api_key(
+            self.admin.user_id,
+            policy_id=3,
+            policy_data=datetime.now() - timedelta(hours=1),
+        )
+        headers = {"Authorization": f"Token {api_key.key}"}
+        resp = requests.get(endpoint, headers=headers)
+        self.assertEqual(resp.status_code, http.client.UNAUTHORIZED)
+
+        api_key = create_api_key(
+            self.admin.user_id,
+            policy_id=3,
+            policy_data=datetime.now() + timedelta(hours=1),
+        )
+        headers = {"Authorization": f"Token {api_key.key}"}
+        resp = requests.get(endpoint, headers=headers)
+        self.assertEqual(resp.status_code, http.client.OK)
+        resp = requests.get(endpoint, headers=headers)
+        self.assertEqual(resp.status_code, http.client.UNAUTHORIZED)
+
 
 if __name__ == "__main__":
     unittest.main()
