@@ -1,9 +1,16 @@
 import re
 from datetime import datetime
-from typing import Tuple
+from typing import Tuple, Union
 from http.client import UNAUTHORIZED
 from flask import Response
-from .db import User, ApiKey, get_user, user_from_login, api_key
+from .db import (
+    User,
+    UserMaybe,
+    ApiKey,
+    user_from_login,
+    api_key,
+    deactivate_api_key,
+)
 from .settings import max_api_key_length
 from .constants import (
     POLICY_USE_FOREVER,
@@ -11,6 +18,11 @@ from .constants import (
     POLICY_USE_ONCE_BEFORE,
     POLICY_ROTATE_EVERY,
 )
+
+
+AuthzTriple = Tuple[User, ApiKey, str]
+AuthzTripleMaybe = Union[AuthzTriple, Tuple[None, None, None]]
+
 
 HEADER = "api key in header"
 COOKIE = "api key in cookie"
@@ -32,7 +44,7 @@ def key_within_policy(key: ApiKey) -> bool:
     }.get(key.policy, lambda _: False)(key.policy_data)
 
 
-def authenticated_user(request) -> Tuple[User, ApiKey, str]:
+def authenticated_user(request) -> AuthzTripleMaybe:
     methods = (
         (api_key_from_header, HEADER),
         (api_key_from_cookie, COOKIE),
@@ -51,11 +63,11 @@ def authenticated_user(request) -> Tuple[User, ApiKey, str]:
     return None, None, None
 
 
-def login_user(request):
+def login_user(request) -> AuthzTriple:
     return user_from_basic_auth(request), None, BASIC_AUTH
 
 
-def api_key_from_header(request):
+def api_key_from_header(request) -> str:
     token_pattern = r"^Token\s+(.+)$"
     auth_header = request.headers.get("Authorization", "")[:max_api_key_length]
     match = re.search(token_pattern, auth_header)
@@ -65,11 +77,11 @@ def api_key_from_header(request):
     return None
 
 
-def api_key_from_cookie(request):
+def api_key_from_cookie(request) -> str:
     return request.cookies.get("api-key", None)
 
 
-def user_from_basic_auth(request):
+def user_from_basic_auth(request) -> UserMaybe:
     authz = request.authorization
     if authz and authz.type == "basic":
         username, password = authz.username, authz.password
