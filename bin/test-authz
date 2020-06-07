@@ -13,22 +13,20 @@ cd "$(git rev-parse --show-toplevel)"
 
 # create folder for data from this run
 id="$RANDOM-$RANDOM"
-data_dir="test_data/$id"
-mkdir -p "$data_dir"
+export TEST_DATA_DIR="test_data/$id"
+mkdir -p "$TEST_DATA_DIR"
 
 # update latest test data symlink
 rm -f test_data/latest
 ln -s $id test_data/latest
 
 # run test server
-export AUTHZ_DB_FILE="$data_dir/test.db"
-WSGI_LOG="$data_dir/wsgi.log"
+export AUTHZ_DB_FILE="$TEST_DATA_DIR/test.db"
 export FLASK_ENV=testing
-(python -m authz.test.server 2>&1) >"$WSGI_LOG" &
-
+python -m authz.test.server &
 
 # run pytest
-TEST_LOG="$data_dir/test.log"
+TEST_LOG="$TEST_DATA_DIR/test.log"
 set +e
 python -m authz.test.tests > >(tee -a "$TEST_LOG") 2> >(tee -a "$TEST_LOG">&2)
 result=$?
@@ -38,6 +36,6 @@ set -e
 kill $(lsof -i:5000 -t)
 
 # print summary
-echo "🔄 Updated test_data/latest → $data_dir"
+echo "🔄 Updated test_data/latest → $TEST_DATA_DIR"
 
 exit $result
