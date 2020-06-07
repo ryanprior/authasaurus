@@ -1,3 +1,5 @@
+from logging import basicConfig, NOTSET
+from os import environ as env
 from flask import Flask
 from ..decorators import auth_required, auth_user
 from .. import service
@@ -32,4 +34,5 @@ def user_history(user):
 login = app.route("/login", methods=["POST"])(service.login)
 logout = app.route("/logout", methods=["POST"])(service.logout)
 
+basicConfig(filename=f"{env.get('TEST_DATA_DIR', '.')}/wsgi.log", level=NOTSET)
 app.run(debug=True)
