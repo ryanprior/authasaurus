@@ -1,10 +1,9 @@
 import requests
 from requests.auth import HTTPBasicAuth
 import http
-from uuid import uuid4
 from datetime import datetime, timedelta
 
-from ..constants import POLICY_USE_UNTIL, POLICY_USE_ONCE_BEFORE
+from ..constants import Policies
 from .. import db
 from ..db import create_api_key, get_user
 import unittest
@@ -118,7 +117,7 @@ class AuthzTests(unittest.TestCase):
     def test_lifecycle_use_until(self):
         api_key = create_api_key(
             self.admin.user_id,
-            policy_id=2,
+            policy_id=Policies.UseUntil.policy_id,
             policy_data=datetime.now() - timedelta(days=1),
         )
         headers = {"Authorization": f"Token {api_key.key}"}
@@ -128,7 +127,7 @@ class AuthzTests(unittest.TestCase):
     def test_lifecycle_use_once_before(self):
         api_key = create_api_key(
             self.admin.user_id,
-            policy_id=3,
+            policy_id=Policies.UseOnceBefore.policy_id,
             policy_data=datetime.now() - timedelta(hours=1),
         )
         headers = {"Authorization": f"Token {api_key.key}"}
@@ -137,7 +136,7 @@ class AuthzTests(unittest.TestCase):
 
         api_key = create_api_key(
             self.admin.user_id,
-            policy_id=3,
+            policy_id=Policies.UseOnceBefore.policy_id,
             policy_data=datetime.now() + timedelta(hours=1),
         )
         headers = {"Authorization": f"Token {api_key.key}"}

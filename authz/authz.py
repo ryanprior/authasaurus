@@ -13,12 +13,9 @@ from .db import (
     deactivate_api_key,
 )
 from .settings import max_api_key_length
-from .constants import (
-    POLICY_USE_FOREVER,
-    POLICY_USE_UNTIL,
-    POLICY_USE_ONCE_BEFORE,
-    STATUS_ACTIVE,
-)
+from .constants import Policies, STATUS_ACTIVE
+
+
 @dataclass
 class Authz:
     user: User
@@ -44,9 +41,9 @@ def key_within_policy(key: ApiKey) -> bool:
         return False
     check_expiration = lambda exp: datetime.fromisoformat(exp) > datetime.now()
     return {
-        POLICY_USE_FOREVER: lambda _: True,
-        POLICY_USE_UNTIL: check_expiration,
-        POLICY_USE_ONCE_BEFORE: check_expiration,
+        Policies.UseForever.name: lambda _: True,
+        Policies.UseUntil.name: check_expiration,
+        Policies.UseOnceBefore.name: check_expiration,
     }.get(key.policy, lambda _: False)(key.policy_data)
 
 

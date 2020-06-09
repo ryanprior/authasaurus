@@ -6,6 +6,7 @@ import random
 import sqlite3
 import uuid
 from . import settings, constants
+from .constants import Policies
 import bcrypt
 
 
@@ -164,9 +165,7 @@ def deactivate_api_key(key_string: str) -> ApiKey:
 def rotate_api_key(key: str, retry=100) -> str:
     key = deactivate_api_key(key)
 
-    return create_api_key(
-        key.user.user_id, constants.POLICY_IDS[key.policy], key.policy_data
-    )
+    return create_api_key(key.user.user_id, Policies.by_name(key.policy), key.policy_data)
 
 
 def user_from_login(username: str, password: str) -> UserMaybe:
@@ -245,12 +244,9 @@ def make_db():
     create_default_policies()
 
 
-type_lifecycle = "LC"
-
 policies = [
-    (constants.POLICY_USE_FOREVER, type_lifecycle),
-    (constants.POLICY_USE_UNTIL, type_lifecycle),
-    (constants.POLICY_USE_ONCE_BEFORE, type_lifecycle),
+    (p.name, p.policy_type)
+    for p in (Policies.UseForever, Policies.UseUntil, Policies.UseOnceBefore)
 ]
 
 
