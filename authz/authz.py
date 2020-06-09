@@ -5,13 +5,11 @@ from typing import Tuple, Union
 from http.client import UNAUTHORIZED
 from flask import Response
 from .db import (
-    User,
-    UserMaybe,
-    ApiKey,
     user_from_login,
     api_key,
     deactivate_api_key,
 )
+from .types import User, UserMaybe, ApiKey
 from .settings import max_api_key_length
 from .constants import Policies, STATUS_ACTIVE
 
