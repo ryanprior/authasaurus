@@ -1,4 +1,5 @@
 import re
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Tuple, Union
 from http.client import UNAUTHORIZED
@@ -18,10 +19,14 @@ from .constants import (
     POLICY_USE_ONCE_BEFORE,
     STATUS_ACTIVE,
 )
+@dataclass
+class Authz:
+    user: User
+    api_key: ApiKey
+    method: str
 
 
-AuthzTriple = Tuple[User, ApiKey, str]
-AuthzTripleMaybe = Union[AuthzTriple, Tuple[None, None, None]]
+AuthzMaybe = Union[Authz, None]
 
 
 HEADER = "api key in header"
@@ -45,7 +50,7 @@ def key_within_policy(key: ApiKey) -> bool:
     }.get(key.policy, lambda _: False)(key.policy_data)
 
 
-def authenticated_user(request) -> AuthzTripleMaybe:
+def authenticated_user(request) -> AuthzMaybe:
     methods = (
         (api_key_from_header, HEADER),
         (api_key_from_cookie, COOKIE),
@@ -56,16 +61,20 @@ def authenticated_user(request) -> AuthzTripleMaybe:
         ((k, method) for func, method in methods if (k := func(request)))
     )
 
-    if not method or not (key := api_key(key_string)) or not key_within_policy(key):
-        return None, None, None
     # Test whether API key is within policy
-    if key.policy == POLICY_USE_ONCE_BEFORE:
+    if not method or not (key := api_key(key_string)) or not key_within_policy(key):
+        return None
+    if key.policy == Policies.UseOnceBefore.name:
         deactivate_api_key(key.key)
-    return (key.user, key, method)
+    return Authz(user=key.user, api_key=key, method=method)
 
 
-def login_user(request) -> AuthzTriple:
-    return user_from_basic_auth(request), None, BASIC_AUTH
+def login_user(request) -> AuthzMaybe:
+    return (
+        Authz(user=user, api_key=None, method=BASIC_AUTH)
+        if (user := user_from_basic_auth(request))
+        else None
+    )
 
 
 def api_key_from_header(request) -> str:

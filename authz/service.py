@@ -8,8 +8,7 @@ from datetime import datetime, timedelta
 def login(authz):
     url = request.args.get("redirect") or request.form.get("redirect", "/")
     response = redirect(url)
-    user, *_ = authz
-    api_key = create_api_key(user.user_id, 2, datetime.now() + timedelta(days=10))
+    api_key = create_api_key(authz.user.user_id, 2, datetime.now() + timedelta(days=10))
     response.set_cookie(
         "api-key",
         value=api_key.key,
@@ -24,6 +23,5 @@ def login(authz):
 def logout(authz):
     url = request.args.get("redirect") or request.form.get("redirect", "/")
     response = redirect(url)
-    _, api_key, _ = authz
-    rotate_api_key(api_key.key)
+    rotate_api_key(authz.api_key.key)
     return response
