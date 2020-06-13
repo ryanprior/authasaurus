@@ -27,8 +27,16 @@ the root.
     )
     return response
 
+
 @auth_required
 def logout(authz):
+    """Rotate the API key used for authorization, ending that session. Send a
+redirect.
+
+    If a "redirect" request parameter is provided, use that URL; otherwise use
+    the root.
+
+    """
     url = request.args.get("redirect") or request.form.get("redirect", "/")
     response = redirect(url)
     rotate_api_key(authz.api_key.key)
