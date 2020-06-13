@@ -4,8 +4,16 @@ from . import settings
 from .db import rotate_api_key, create_api_key
 from datetime import datetime, timedelta
 
+
 @auth_login
 def login(authz):
+    """If the client provides appropriate credentials, issue them an API key and
+    send it to them in a cookie with a rediret.
+
+    If a "redirect" request argument is provided, use that URL; otherwise use
+the root.
+
+    """
     url = request.args.get("redirect") or request.form.get("redirect", "/")
     response = redirect(url)
     api_key = create_api_key(authz.user.user_id, 2, datetime.now() + timedelta(days=10))
