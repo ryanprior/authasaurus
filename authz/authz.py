@@ -9,19 +9,9 @@ from .db import (
     api_key,
     deactivate_api_key,
 )
-from .types import User, UserMaybe, ApiKey
+from .types import User, UserMaybe, ApiKey, Authz, AuthzMaybe
 from .settings import max_api_key_length
 from .constants import Policies, STATUS_ACTIVE
-
-
-@dataclass
-class Authz:
-    user: User
-    api_key: ApiKey
-    method: str
-
-
-AuthzMaybe = Union[Authz, None]
 
 
 HEADER = "api key in header"

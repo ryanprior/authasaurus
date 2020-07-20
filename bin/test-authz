@@ -23,12 +23,12 @@ ln -s $id test_data/latest
 # run test server
 export AUTHZ_DB_FILE="$TEST_DATA_DIR/test.db"
 export FLASK_ENV=testing
-python -m authz.test.server &
+python3 -m authz.test.server &
 
 # run pytest
 TEST_LOG="$TEST_DATA_DIR/test.log"
 set +e
-python -m authz.test.tests > >(tee -a "$TEST_LOG") 2> >(tee -a "$TEST_LOG">&2)
+python3 -m authz.test.tests > >(tee -a "$TEST_LOG") 2> >(tee -a "$TEST_LOG">&2)
 result=$?
 set -e
 
