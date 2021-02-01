@@ -1,0 +1,17 @@
+#+TITLE: Authasaurus Roadmap to 1.0
+
+Things we need, broadly:
+
+- Stand-alone reverse proxy
+- Documentation and quick-start
+- TLS termination
+- Security policy manager & audit tool
+- User tag manager
+- Packages - pypi, Docker, Guix
+
+Other goals:
+
+- Reduce dependencies
+- Publish zine or small book
+- Independent audit
+- Dogfood & beta test
