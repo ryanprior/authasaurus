@@ -14,4 +14,6 @@ Other goals:
 - Reduce dependencies
 - Publish zine or small book
 - Independent audit
+- Separate unit tests from integration tests
+- Property-based tests
 - Dogfood & beta test
