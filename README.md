@@ -1,5 +1,10 @@
 # Add authorization to your web app
 
+Authors of network microservices should always follow strong security practices.
+Often they struggle to do so without sacrificing velocity or being forced to
+adopt a heavy framework. Authasaurus adds solid security with minimal added
+complexity.
+
 ## Example
 
 ### Flask
