@@ -31,26 +31,11 @@ class ApiKey:
 
 ApiKeyMaybe = Union[ApiKey, None]
 
-authz_db_salt = bcrypt.gensalt()
-SALT_FILE_NAME = environ.get("AUTHZ_SALT_FILE", "salt-value")
-
 DB_FILE_NAME = environ.get("AUTHZ_DB_FILE", "authorization.db")
 
 
 def db():
     return sqlite3.connect(DB_FILE_NAME)
-
-
-def load_salt():
-    global authz_db_salt
-    if isfile(SALT_FILE_NAME):
-        with open(SALT_FILE_NAME, "rb") as salt:
-            authz_db_salt = salt.read()
-    else:
-        with open(SALT_FILE_NAME, "wb") as salt:
-            salt.write(authz_db_salt)
-    return authz_db_salt
-
 
 def api_key(key: str) -> ApiKeyMaybe:
     with db() as connection:
@@ -99,7 +84,7 @@ def create_user(username: str, login: bool, retry=100):
     user_id = random.randint(1000000000, 9999999999)
     password = str(uuid.uuid4()) if login else None
     password_hash = (
-        bcrypt.hashpw(password.encode("utf-8"), authz_db_salt) if login else None
+        bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()) if login else None
     )
 
     try:
@@ -169,7 +154,6 @@ def rotate_api_key(key: str, retry=100) -> str:
 
 
 def user_from_login(username: str, password: str) -> UserMaybe:
-    password_hash = bcrypt.hashpw(password.encode("utf-8"), authz_db_salt)
     with db() as connection:
         cursor = connection.cursor()
         cursor.execute(
@@ -177,16 +161,16 @@ def user_from_login(username: str, password: str) -> UserMaybe:
             SELECT Id, UserName, PasswordHash
               FROM User
               WHERE Username = ?
-              AND PasswordHash = ?
             LIMIT 1
             """,
-            (username, password_hash),
+            (username,),
         )
         result = cursor.fetchone()
-        if not result:
-            return None
+    if result:
         user_id, name, password_hash = result
-        return User(user_id, name, password_hash)
+        if bcrypt.hashpw(password, password_hash) == password_hash:
+            return User(user_id, name, password_hash)
+    return None;
 
 
 def create_api_key(user_id, policy_id=1, policy_data=None, conn=None, retry=100):
