@@ -168,7 +168,7 @@ def user_from_login(username: str, password: str) -> UserMaybe:
         result = cursor.fetchone()
     if result:
         user_id, name, password_hash = result
-        if bcrypt.hashpw(password, password_hash) == password_hash:
+        if bcrypt.hashpw(password.encode("utf-8"), password_hash) == password_hash:
             return User(user_id, name, password_hash)
     return None;
 
